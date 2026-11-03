@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="GeoCam">
+<meta name="theme-color" content="#14212b">
+<title>GeoCam</title>
+<style>
+:root{--bg:#eef1f2;--ink:#14212b;--mut:#5d6b76;--card:#fff;--line:#d3dadf;--acc:#ff5a1f;--ok:#1b7a4b;--bad:#c62828}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{max-width:760px;margin:0 auto;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:12px}
+h1{font-size:20px;margin:0;font-weight:700}
+#gps{font:13px ui-monospace,SFMono-Regular,Menlo,monospace;padding:5px 10px;border-radius:6px;background:var(--card);border:1px solid var(--line);color:var(--mut)}
+#gps.ok{color:var(--ok);border-color:var(--ok)}
+#gps.bad{color:var(--bad);border-color:var(--bad)}
+.cam{position:relative;background:#000;width:100%;aspect-ratio:3/4;max-height:68vh}
+video{width:100%;height:100%;object-fit:contain;display:block}
+video.shot{animation:flash .25s}
+@keyframes flash{from{opacity:.2}to{opacity:1}}
+#camMsg{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;color:#fff}
+#shutter{display:block;margin:14px auto 6px;width:76px;height:76px;border-radius:50%;border:5px solid var(--ink);background:var(--acc);cursor:pointer}
+#shutter:active{transform:scale(.94)}
+#shutter:disabled{opacity:.5}
+.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:12px}
+.bar h2{font-size:17px;margin:0}
+button.b{font:inherit;font-size:14px;padding:8px 12px;border-radius:6px;border:1px solid var(--ink);background:var(--card);color:var(--ink);cursor:pointer}
+button.b.p{background:var(--ink);color:#fff}
+button.b.d{border-color:var(--bad);color:var(--bad)}
+#gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;padding:0 12px 24px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden;display:flex;flex-direction:column}
+.item img{width:100%;display:block;cursor:zoom-in}
+.item .m{font:12px ui-monospace,Menlo,monospace;color:var(--mut);padding:6px 8px}
+.item .r{display:flex;gap:6px;padding:0 8px 8px;flex-wrap:wrap}
+.empty{grid-column:1/-1;color:var(--mut);padding:8px 0}
+#view{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:9}
+#view img{max-width:100%;max-height:100%}
+</style>
+</head>
+<body>
+<header>
+  <h1>GeoCam</h1>
+  <div id="gps">Waiting for GPS…</div>
+</header>
+
+<div class="cam">
+  <video id="video" autoplay playsinline muted></video>
+  <div id="camMsg">Camera unavailable. Use “Phone camera app” below instead.</div>
+</div>
+<button id="shutter" aria-label="Take photo"></button>
+
+<div class="bar">
+  <h2>Photos (<span id="count">0</span>)</h2>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="b" id="fallbackBtn">Phone camera app</button>
+    <button class="b p" id="dlAll">Download all</button>
+  </div>
+</div>
+<input type="file" id="fallback" accept="image/*" capture="environment" hidden>
+<div id="gallery"></div>
+<div id="view"><img alt=""></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const video = $('video'), gallery = $('gallery');
+let db, stream, pos = null, urls = [];
+
+/* ---------- Storage: IndexedDB keeps photos on this device between visits ---------- */
+function openDB() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('geocam', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('photos', { keyPath: 'id', autoIncrement: true });
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+function tx(mode, fn) {
+  return new Promise((res, rej) => {
+    const t = db.transaction('photos', mode), req = fn(t.objectStore('photos'));
+    t.oncomplete = () => res(req.result);
+    t.onerror = () => rej(t.error);
+  });
+}
+
+/* ---------- GPS: keep the latest fix so a photo can use it instantly ---------- */
+function setGps(text, cls) { const g = $('gps'); g.textContent = text; g.className = cls || ''; }
+function startGPS() {
+  if (!navigator.geolocation) return setGps('GPS not supported', 'bad');
+  navigator.geolocation.watchPosition(p => {
+    pos = p;
+    const c = p.coords;
+    setGps(`${c.latitude.toFixed(6)}, ${c.longitude.toFixed(6)} ±${Math.round(c.accuracy)} m`, 'ok');
+  }, e => {
+    if (e.code === 1) setGps('Location blocked. Allow it in browser settings.', 'bad');
+    else if (!pos) setGps('No GPS fix yet…', 'bad');
+  }, { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 });
+}
+
+/* ---------- Camera ---------- */
+async function startCam() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 3840 }, height: { ideal: 2160 } },
+      audio: false
+    });
+    video.srcObject = stream;
+    await video.play();
+    $('camMsg').style.display = 'none';
+  } catch (e) {
+    $('camMsg').style.display = 'flex';
+  }
+}
+// iOS pauses the camera when the app is backgrounded, so restart it on return
+document.addEventListener('visibilitychange', () => {
+  const t = stream && stream.getVideoTracks()[0];
+  if (!document.hidden && (!t || t.readyState !== 'live')) startCam();
+});
+
+/* ---------- Stamp the GPS text onto the image and save ---------- */
+const toBlob = (c, q) => new Promise(r => c.toBlob(r, 'image/jpeg', q));
+const pad = n => String(n).padStart(2, '0');
+
+async function save(source, w, h) {
+  const now = new Date(), c = pos && pos.coords;
+  const when = now.toLocaleString([], { dateStyle: 'medium', timeStyle: 'medium' });
+  const lines = c
+    ? [`Lat ${c.latitude.toFixed(6)}   Lon ${c.longitude.toFixed(6)}`, `±${Math.round(c.accuracy)} m   ${when}`]
+    : ['No GPS fix', when];
+
+  const cv = document.createElement('canvas');
+  cv.width = w; cv.height = h;
+  const x = cv.getContext('2d');
+  x.drawImage(source, 0, 0, w, h);
+
+  // Text bar along the bottom, sized relative to the photo
+  const fs = Math.max(16, Math.round(Math.min(w, h) * 0.03));
+  const barH = Math.round(lines.length * fs * 1.4 + fs);
+  x.fillStyle = 'rgba(0,0,0,.65)';
+  x.fillRect(0, h - barH, w, barH);
+  x.fillStyle = '#fff';
+  x.textBaseline = 'top';
+  x.font = `bold ${fs}px ui-monospace, Menlo, Consolas, monospace`;
+  lines.forEach((t, i) => x.fillText(t, fs * 0.6, h - barH + fs * 0.5 + i * fs * 1.4));
+
+  // Small thumbnail for the gallery
+  const th = document.createElement('canvas');
+  th.width = 360; th.height = Math.round(360 * h / w);
+  th.getContext('2d').drawImage(cv, 0, 0, th.width, th.height);
+
+  const stampName = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+  const rec = {
+    blob: await toBlob(cv, 0.92),
+    thumb: await toBlob(th, 0.8),
+    lat: c ? c.latitude : null, lon: c ? c.longitude : null, acc: c ? c.accuracy : null,
+    time: now.getTime(),
+    name: `geocam_${stampName}${c ? `_${c.latitude.toFixed(5)}_${c.longitude.toFixed(5)}` : '_nogps'}.jpg`
+  };
+  await tx('readwrite', s => s.add(rec));
+  render();
+}
+
+$('shutter').onclick = async () => {
+  if (!video.videoWidth) return;
+  const b = $('shutter'); b.disabled = true;
+  video.classList.remove('shot'); void video.offsetWidth; video.classList.add('shot');
+  await save(video, video.videoWidth, video.videoHeight);
+  b.disabled = false;
+};
+
+// Fallback: use the phone's own camera app (full-resolution photo, GPS taken when you return)
+$('fallbackBtn').onclick = () => $('fallback').click();
+$('fallback').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  const img = new Image(), u = URL.createObjectURL(f);
+  img.src = u; await img.decode();
+  await save(img, img.naturalWidth, img.naturalHeight);
+  URL.revokeObjectURL(u); e.target.value = '';
+};
+
+/* ---------- Gallery, download, share, delete ---------- */
+function download(r) {
+  const u = URL.createObjectURL(r.blob), a = document.createElement('a');
+  a.href = u; a.download = r.name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 10000);
+}
+async function share(r) {
+  try { await navigator.share({ files: [new File([r.blob], r.name, { type: 'image/jpeg' })] }); } catch (e) {}
+}
+async function render() {
+  const list = (await tx('readonly', s => s.getAll())).reverse();
+  urls.forEach(URL.revokeObjectURL); urls = [];
+  $('count').textContent = list.length;
+  gallery.innerHTML = list.length ? '' : '<div class="empty">No photos yet. Tap the orange button to take one.</div>';
+  for (const r of list) {
+    const u = URL.createObjectURL(r.thumb); urls.push(u);
+    const d = document.createElement('div'); d.className = 'item';
+    d.innerHTML = `<img src="${u}" alt="Photo"><div class="m">${r.lat == null ? 'No GPS' : r.lat.toFixed(5) + ', ' + r.lon.toFixed(5)}</div><div class="r"></div>`;
+    d.querySelector('img').onclick = () => {
+      const v = $('view'), vu = URL.createObjectURL(r.blob);
+      v.firstElementChild.src = vu; v.style.display = 'flex';
+      v.onclick = () => { v.style.display = 'none'; URL.revokeObjectURL(vu); };
+    };
+    const row = d.querySelector('.r');
+    const add = (label, cls, fn) => { const b = document.createElement('button'); b.className = 'b ' + cls; b.textContent = label; b.onclick = fn; row.appendChild(b); };
+    add('Download', '', () => download(r));
+    if (navigator.canShare && navigator.canShare({ files: [new File([r.blob], r.name, { type: 'image/jpeg' })] })) add('Share', '', () => share(r));
+    add('Delete', 'd', async () => { if (confirm('Delete this photo?')) { await tx('readwrite', s => s.delete(r.id)); render(); } });
+    gallery.appendChild(d);
+  }
+}
+$('dlAll').onclick = async () => {
+  const list = await tx('readonly', s => s.getAll());
+  for (const r of list) { download(r); await new Promise(res => setTimeout(res, 500)); }
+};
+
+/* ---------- Start ---------- */
+(async () => {
+  db = await openDB();
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
+  render(); startGPS(); startCam();
+})();
+</script>
+</body>
+</html>
