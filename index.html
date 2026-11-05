@@ -39,28 +39,24 @@ header{
   border-bottom:1px solid #252c33; /* Subtle bottom border */
 }
 
-header h1{
-  font-family:'IBM Plex Mono',monospace; /* Technical typeface */
-  font-size:23px; /* SJS text size */
-  font-weight:500; /* Medium company lettering */
-  letter-spacing:1.65px; /* Spacing between letters */
-  color:#26B3BE; /* SJS turquoise */
-  max-width:720px; /* Match main content width */
-  margin:0 auto; /* Centre header content */
-  display:flex; /* Place company and product side by side */
-  align-items:baseline; /* Align text baselines */
-  justify-content:flex-start; /* Keep branding on the left */
-  gap:16px; /* Space around divider */
-  padding-left:5px; /* Move SJS slightly right */
+header h1 span{
+  color:#d9823b;
+  font-size:16px;
+  font-weight:400;
+  letter-spacing:1.65px;
+  padding-left:16px;
+  position:relative;
 }
 
-header h1 span{
-  color:#d9823b; /* GEOCAM orange */
-  font-size:16px; /* Maintain existing product text size */
-  font-weight:400; /* Lighter product lettering */
-  letter-spacing:1.65px; /* Match SJS letter spacing */
-  border-left:1px solid #59636b; /* Muted vertical divider */
-  padding-left:16px; /* Space between divider and GEOCAM */
+header h1 span::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:50%;
+  transform:translateY(-50%);
+  height:23px; /* Match SJS font size */
+  width:1px;
+  background:#59636b;
 }
 
 main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
