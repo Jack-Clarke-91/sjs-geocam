@@ -37,28 +37,16 @@ html,body{
   color:var(--ink);
   font:16px/1.45 Calibri, "Segoe UI", sans-serif;
 }
-/* Header */
-header{
-  background-color:#151b21;
-  background-image:
-    linear-gradient(rgba(10,15,20,.35) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(10,15,20,.35) 1px, transparent 1px);
-  background-size:20px 20px;
-  color:#e8e7e1;
-  padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
-  border-bottom:1px solid #252c33;
-}
-
 header h1{
   font-family:Calibri, "Segoe UI", sans-serif;
-  font-size:23px;
-  font-weight:600;
+  font-size:27px;
+  font-weight:700;
   letter-spacing:1px;
   color:#26B3BE;
   max-width:720px;
   margin:0 auto;
   display:flex;
-  align-items:center;
+  align-items:baseline;
   justify-content:flex-start;
   gap:0;
   padding-left:0;
@@ -66,7 +54,8 @@ header h1{
 }
 
 header h1 strong{
-  font:inherit;
+  font-size:27px;
+  font-weight:700;
   color:#26B3BE;
 }
 
@@ -74,17 +63,19 @@ header h1 i{
   display:block;
   flex:none;
   width:1px;
-  height:21px;
+  height:17px;
   background:#414b53;
   margin:0 9px;
+  align-self:center;
 }
 
 header h1 span{
-  color:#d9823b;
-  font-size:16px;
+  color:#a96842;
+  font-size:15px;
   font-weight:400;
-  letter-spacing:0.5px;
+  letter-spacing:0.3px;
   line-height:1;
+  align-self:baseline;
 }
 main{
   max-width:720px;
