@@ -12,30 +12,72 @@
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
-:root{--bg:#f1f4f6;--card:#fff;--ink:#14212b;--mut:#5d6b76;--line:#d9e0e5;--acc:#d9480f;--acc2:#a83a0a;--ok:#1b7a4b;--warn:#b26a00;--bad:#c62828}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 
-header{
-  background-color:#151b21; /* Dark engineering-style background */
-  background-image:
-    linear-gradient(rgba(10,15,20,.35) 1px, transparent 1px), /* Horizontal grid */
-    linear-gradient(90deg, rgba(10,15,20,.35) 1px, transparent 1px); /* Vertical grid */
-  background-size:20px 20px; /* Grid spacing */
-  color:#e8e7e1; /* Off-white text */
-  padding:calc(10px + env(safe-area-inset-top)) 16px 10px; /* Header spacing */
-  border-bottom:1px solid #252c33; /* Subtle bottom border */
+:root{
+  --bg:#f1f4f6;
+  --card:#fff;
+  --ink:#14212b;
+  --mut:#5d6b76;
+  --line:#d9e0e5;
+  --acc:#d9480f;
+  --acc2:#a83a0a;
+  --ok:#1b7a4b;
+  --warn:#b26a00;
+  --bad:#c62828;
 }
 
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+
+/* Header */
 header{
-  background-color:#151b21; /* Dark engineering-style background */
+  background-color:#151b21;
   background-image:
-    linear-gradient(rgba(10,15,20,.35) 1px, transparent 1px), /* Horizontal grid */
-    linear-gradient(90deg, rgba(10,15,20,.35) 1px, transparent 1px); /* Vertical grid */
-  background-size:20px 20px; /* Grid spacing */
-  color:#e8e7e1; /* Off-white text */
-  padding:calc(10px + env(safe-area-inset-top)) 16px 10px; /* Header spacing */
-  border-bottom:1px solid #252c33; /* Subtle bottom border */
+    linear-gradient(rgba(10,15,20,.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(10,15,20,.35) 1px, transparent 1px);
+  background-size:20px 20px;
+  color:#e8e7e1;
+  padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
+  border-bottom:1px solid #252c33;
+}
+
+header h1{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:23px;
+  font-weight:500;
+  letter-spacing:1.65px;
+  color:#26B3BE;
+  max-width:720px;
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:0;
+  padding-left:5px;
+  line-height:1;
+}
+
+header h1 strong{
+  font:inherit;
+  color:#26B3BE;
+}
+
+header h1 i{
+  display:block;
+  flex:none;
+  width:1px;
+  height:23px;
+  background:#59636b;
+  margin:0 16px;
 }
 
 header h1 span{
@@ -43,109 +85,478 @@ header h1 span{
   font-size:16px;
   font-weight:400;
   letter-spacing:1.65px;
-  padding-left:16px;
-  position:relative;
+  line-height:1;
 }
 
-header h1 span::before{
-  content:"";
-  position:absolute;
-  left:0;
-  top:50%;
-  transform:translateY(-50%);
-  height:23px;
-  width:1px;
-  background:#59636b;
-  margin-top:0;
+main{
+  max-width:720px;
+  margin:0 auto;
+  padding:16px calc(16px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
 }
-
-main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
 
 /* GPS card */
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
-.card-layout{display:grid;grid-template-columns:56% 44%;align-items:center}
-.gps-info{min-width:0;padding-right:12px}
-.status{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--mut)}
-.dot{width:10px;height:10px;border-radius:50%;background:var(--warn);flex:none}
-[data-state=ok] .dot{background:var(--ok)}
-[data-state=bad] .dot{background:var(--bad)}
-.en{display:grid;grid-template-columns:max-content max-content;column-gap:16px;margin:7px 0 1px}
-.en small{display:block;font-size:11px;color:var(--mut)}
-.en b{font:600 14px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.35px}
-.road{display:flex;flex-direction:column;gap:2px;margin-top:6px}
-.road small{font-size:10px;color:var(--mut);letter-spacing:.25px}
-.road b{font-size:15px;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
-.weather-panel{min-width:0;border-left:1px solid var(--line);padding-left:10px}
-.weather-title{font-size:10px;font-weight:700;letter-spacing:.35px;color:var(--mut);margin:0 0 6px}
-.weather-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 5px}
-.weather-row{display:grid;grid-template-columns:20px minmax(0,1fr);align-items:center;gap:4px;min-height:25px}
-.weather-icon{font-size:19px;line-height:1;text-align:center}
-.weather-time{font-size:11px;color:var(--ink);font-weight:600;white-space:nowrap}
-.weather-rain{display:block;font-size:9px;color:var(--mut);line-height:1.2}
-.weather-temp{display:none}
-.weather-message{font-size:10px;color:var(--mut);line-height:1.3}
-.map-credit{margin:18px 0 0;text-align:center;font-size:10px;color:var(--mut)}
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:10px;
+}
+
+.card-layout{
+  display:grid;
+  grid-template-columns:56% 44%;
+  align-items:center;
+}
+
+.gps-info{
+  min-width:0;
+  padding-right:12px;
+}
+
+.status{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:14px;
+  color:var(--mut);
+}
+
+.dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:var(--warn);
+  flex:none;
+}
+
+[data-state=ok] .dot{
+  background:var(--ok);
+}
+
+[data-state=bad] .dot{
+  background:var(--bad);
+}
+
+.en{
+  display:grid;
+  grid-template-columns:max-content max-content;
+  column-gap:16px;
+  margin:7px 0 1px;
+}
+
+.en small{
+  display:block;
+  font-size:11px;
+  color:var(--mut);
+}
+
+.en b{
+  font:600 14px ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:-.35px;
+}
+
+.road{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  margin-top:6px;
+}
+
+.road small{
+  font-size:10px;
+  color:var(--mut);
+  letter-spacing:.25px;
+}
+
+.road b{
+  font-size:15px;
+  font-weight:700;
+  line-height:1.25;
+  overflow-wrap:anywhere;
+}
+
+.weather-panel{
+  min-width:0;
+  border-left:1px solid var(--line);
+  padding-left:10px;
+}
+
+.weather-title{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.35px;
+  color:var(--mut);
+  margin:0 0 6px;
+}
+
+.weather-list{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px 5px;
+}
+
+.weather-row{
+  display:grid;
+  grid-template-columns:20px minmax(0,1fr);
+  align-items:center;
+  gap:4px;
+  min-height:25px;
+}
+
+.weather-icon{
+  font-size:19px;
+  line-height:1;
+  text-align:center;
+}
+
+.weather-time{
+  font-size:11px;
+  color:var(--ink);
+  font-weight:600;
+  white-space:nowrap;
+}
+
+.weather-rain{
+  display:block;
+  font-size:9px;
+  color:var(--mut);
+  line-height:1.2;
+}
+
+.weather-temp{
+  display:none;
+}
+
+.weather-message{
+  font-size:10px;
+  color:var(--mut);
+  line-height:1.3;
+}
+
+.map-credit{
+  margin:18px 0 0;
+  text-align:center;
+  font-size:10px;
+  color:var(--mut);
+}
 
 /* Take photo */
-.take{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:16px 0 6px;padding:20px;font-family:inherit;font-size:21px;font-weight:700;background:var(--acc);color:#fff;border:0;border-radius:14px;box-shadow:0 3px 0 var(--acc2);cursor:pointer}
-.take:active{transform:translateY(2px);box-shadow:0 1px 0 var(--acc2)}
-.hint{margin:0;text-align:center;font-size:13px;color:var(--mut)}
+.take{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  width:100%;
+  margin:16px 0 6px;
+  padding:20px;
+  font-family:inherit;
+  font-size:21px;
+  font-weight:700;
+  background:var(--acc);
+  color:#fff;
+  border:0;
+  border-radius:14px;
+  box-shadow:0 3px 0 var(--acc2);
+  cursor:pointer;
+}
+
+.take:active{
+  transform:translateY(2px);
+  box-shadow:0 1px 0 var(--acc2);
+}
+
+.hint{
+  margin:0;
+  text-align:center;
+  font-size:13px;
+  color:var(--mut);
+}
 
 /* Live camera */
-.live{margin-top:16px}
-.cam{position:relative;background:#000;border-radius:14px;overflow:hidden;height:55vh;width:100%}
-.cam video{width:100%;height:100%;object-fit:contain;display:block}
-.cam video.shot{animation:flash .25s}
-@keyframes flash{from{opacity:.2}to{opacity:1}}
-.shutter{display:block;margin:14px auto 6px;width:80px;height:80px;border-radius:50%;border:5px solid var(--ink);background:var(--acc);cursor:pointer}
-.shutter:active{transform:scale(.94)}
-.shutter:disabled{opacity:.5}
+.live{
+  margin-top:16px;
+}
+
+.cam{
+  position:relative;
+  background:#000;
+  border-radius:14px;
+  overflow:hidden;
+  height:55vh;
+  width:100%;
+}
+
+.cam video{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+
+.cam video.shot{
+  animation:flash .25s;
+}
+
+@keyframes flash{
+  from{opacity:.2}
+  to{opacity:1}
+}
+
+.shutter{
+  display:block;
+  margin:14px auto 6px;
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  border:5px solid var(--ink);
+  background:var(--acc);
+  cursor:pointer;
+}
+
+.shutter:active{
+  transform:scale(.94);
+}
+
+.shutter:disabled{
+  opacity:.5;
+}
 
 /* Photos */
-.bar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:26px 0 12px}
-.bar h2{margin:0;font-size:18px}
-.tools{display:flex;gap:8px;flex-wrap:wrap}
-.btn{font:inherit;font-size:14px;font-weight:600;padding:9px 14px;border-radius:9px;border:1.5px solid var(--ink);background:var(--card);color:var(--ink);cursor:pointer}
-.btn.pri{background:var(--ink);color:#fff}
-.btn.link{border:0;background:none;color:var(--bad);font-weight:500}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:12px}
-.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
-.tile img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;cursor:zoom-in;background:#dde3e7}
-.meta{padding:8px 10px 2px;font-size:12px;color:var(--mut);display:grid;gap:1px}
-.meta b{color:var(--ink);font-size:13px}
-.acts{display:flex;gap:6px;padding:6px 10px 0}
-.acts .btn{flex:1;padding:8px 6px;font-size:13px}
-.del{margin:2px 10px 6px;padding:6px;font-size:13px}
-.empty{border:2px dashed var(--line);border-radius:12px;padding:28px 16px;text-align:center;color:var(--mut)}
+.bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:26px 0 12px;
+}
+
+.bar h2{
+  margin:0;
+  font-size:18px;
+}
+
+.tools{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.btn{
+  font:inherit;
+  font-size:14px;
+  font-weight:600;
+  padding:9px 14px;
+  border-radius:9px;
+  border:1.5px solid var(--ink);
+  background:var(--card);
+  color:var(--ink);
+  cursor:pointer;
+}
+
+.btn.pri{
+  background:var(--ink);
+  color:#fff;
+}
+
+.btn.link{
+  border:0;
+  background:none;
+  color:var(--bad);
+  font-weight:500;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(165px,1fr));
+  gap:12px;
+}
+
+.tile{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:12px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+.tile img{
+  width:100%;
+  aspect-ratio:4/3;
+  object-fit:cover;
+  display:block;
+  cursor:zoom-in;
+  background:#dde3e7;
+}
+
+.meta{
+  padding:8px 10px 2px;
+  font-size:12px;
+  color:var(--mut);
+  display:grid;
+  gap:1px;
+}
+
+.meta b{
+  color:var(--ink);
+  font-size:13px;
+}
+
+.acts{
+  display:flex;
+  gap:6px;
+  padding:6px 10px 0;
+}
+
+.acts .btn{
+  flex:1;
+  padding:8px 6px;
+  font-size:13px;
+}
+
+.del{
+  margin:2px 10px 6px;
+  padding:6px;
+  font-size:13px;
+}
+
+.empty{
+  border:2px dashed var(--line);
+  border-radius:12px;
+  padding:28px 16px;
+  text-align:center;
+  color:var(--mut);
+}
 
 /* Toast and full-size viewer */
-#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:99px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90%;text-align:center}
-#toast.show{opacity:1}
-#view{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:9}
+#toast{
+  position:fixed;
+  left:50%;
+  bottom:calc(20px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  background:var(--ink);
+  color:#fff;
+  padding:10px 16px;
+  border-radius:99px;
+  font-size:14px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .2s;
+  max-width:90%;
+  text-align:center;
+}
+
+#toast.show{
+  opacity:1;
+}
+
+#view{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.92);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9;
+}
 
 /* Compact mobile layout */
 @media (max-width:600px){
-  main{padding:8px 10px calc(20px + env(safe-area-inset-bottom))}
-  .card{padding:8px;border-radius:10px}
-  .card-layout{grid-template-columns:56% 44%}
-  .gps-info{padding-right:9px}
-  .status{font-size:12px;gap:5px}
-  .dot{width:7px;height:7px}
-  .en{column-gap:12px;margin:6px 0 1px}
-  .en small{font-size:10px}
-  .en b{font-size:13px;line-height:1.25;letter-spacing:-.45px}
-  .road{margin-top:5px}
-  .road small{font-size:9px}
-  .road b{font-size:14px}
-  .weather-panel{padding-left:8px}
-  .weather-title{font-size:9px;margin-bottom:5px}
-  .weather-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 3px}
-  .weather-row{grid-template-columns:17px minmax(0,1fr);gap:3px;min-height:23px}
-  .weather-icon{font-size:17px}
-  .weather-time{font-size:10px}
-  .weather-rain{font-size:8px}
-  .weather-message{font-size:10px}
-  .live{margin-top:8px}
+  main{
+    padding:8px 10px calc(20px + env(safe-area-inset-bottom));
+  }
+
+  .card{
+    padding:8px;
+    border-radius:10px;
+  }
+
+  .card-layout{
+    grid-template-columns:56% 44%;
+  }
+
+  .gps-info{
+    padding-right:9px;
+  }
+
+  .status{
+    font-size:12px;
+    gap:5px;
+  }
+
+  .dot{
+    width:7px;
+    height:7px;
+  }
+
+  .en{
+    column-gap:12px;
+    margin:6px 0 1px;
+  }
+
+  .en small{
+    font-size:10px;
+  }
+
+  .en b{
+    font-size:13px;
+    line-height:1.25;
+    letter-spacing:-.45px;
+  }
+
+  .road{
+    margin-top:5px;
+  }
+
+  .road small{
+    font-size:9px;
+  }
+
+  .road b{
+    font-size:14px;
+  }
+
+  .weather-panel{
+    padding-left:8px;
+  }
+
+  .weather-title{
+    font-size:9px;
+    margin-bottom:5px;
+  }
+
+  .weather-list{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:6px 3px;
+  }
+
+  .weather-row{
+    grid-template-columns:17px minmax(0,1fr);
+    gap:3px;
+    min-height:23px;
+  }
+
+  .weather-icon{
+    font-size:17px;
+  }
+
+  .weather-time{
+    font-size:10px;
+  }
+
+  .weather-rain{
+    font-size:8px;
+  }
+
+  .weather-message{
+    font-size:10px;
+  }
+
+  .live{
+    margin-top:8px;
+  }
+
   .cam{
     aspect-ratio:auto;
     height:55vh;
@@ -153,17 +564,41 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
     min-height:300px;
     border-radius:10px;
   }
-  .shutter{width:62px;height:62px;border-width:4px;margin:7px auto 2px}
-  .live .hint{font-size:11px}
-  .take{margin:9px 0 4px;padding:14px;font-size:18px}
-  .bar{margin:18px 0 10px}
+
+  .shutter{
+    width:62px;
+    height:62px;
+    border-width:4px;
+    margin:7px auto 2px;
+  }
+
+  .live .hint{
+    font-size:11px;
+  }
+
+  .take{
+    margin:9px 0 4px;
+    padding:14px;
+    font-size:18px;
+  }
+
+  .bar{
+    margin:18px 0 10px;
+  }
 }
-#view img{max-width:100%;max-height:100%}
+
+#view img{
+  max-width:100%;
+  max-height:100%;
+}
 </style>
 </head>
 
 <body>
-<header><h1>SJS <span>GEOCAM</span></h1></header>
+
+<header>
+  <h1><strong>SJS</strong><i aria-hidden="true"></i><span>GEOCAM</span></h1>
+</header>
 
 <main>
 
@@ -262,14 +697,21 @@ function toast(msg, sticky) {
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(toastTimer);
-  if (!sticky) toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+
+  if (!sticky) {
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+  }
 }
 
 /* ---------- Storage: IndexedDB ---------- */
 function openDB() {
   return new Promise((res, rej) => {
     const r = indexedDB.open('geocam', 1);
-    r.onupgradeneeded = () => r.result.createObjectStore('photos', { keyPath: 'id', autoIncrement: true });
+
+    r.onupgradeneeded = () => {
+      r.result.createObjectStore('photos', { keyPath: 'id', autoIncrement: true });
+    };
+
     r.onsuccess = () => res(r.result);
     r.onerror = () => rej(r.error);
   });
@@ -279,6 +721,7 @@ function tx(mode, fn) {
   return new Promise((res, rej) => {
     const t = db.transaction('photos', mode);
     const req = fn(t.objectStore('photos'));
+
     t.oncomplete = () => res(req.result);
     t.onerror = () => rej(t.error);
   });
@@ -302,6 +745,7 @@ function toBNG(latDeg, lonDeg) {
   const tx = -446.448, ty = 125.157, tz = -542.060;
   const s = 1 + 20.4894e-6;
   const rx = rad(-0.1502 / 3600), ry = rad(-0.2470 / 3600), rz = rad(-0.8421 / 3600);
+
   const x2 = tx + x1 * s - y1 * rz + z1 * ry;
   const y2 = ty + x1 * rz + y1 * s - z1 * rx;
   const z2 = tz - x1 * ry + y1 * rx + z1 * s;
@@ -331,7 +775,8 @@ function toBNG(latDeg, lonDeg) {
     (1 + n + 1.25 * n * n + 1.25 * n ** 3) * dPh
     - (3 * n + 3 * n * n + 21 / 8 * n ** 3) * Math.sin(dPh) * Math.cos(sPh)
     + (15 / 8 * n * n + 15 / 8 * n ** 3) * Math.sin(2 * dPh) * Math.cos(2 * sPh)
-    - 35 / 24 * n ** 3 * Math.sin(3 * dPh) * Math.cos(3 * sPh));
+    - 35 / 24 * n ** 3 * Math.sin(3 * dPh) * Math.cos(3 * sPh)
+  );
 
   const dL = la - la0;
   const I = M + N0;
@@ -390,13 +835,15 @@ async function updateRoadName(lat, lon) {
 
   try {
     // Ask OpenStreetMap for the nearest mapped address.
-    const url = https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&zoom=18&addressdetails=1;
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&zoom=18&addressdetails=1`;
 
     const response = await fetch(url, {
       headers: { Accept: 'application/json' }
     });
 
-    if (!response.ok) throw new Error(Road lookup returned ${response.status});
+    if (!response.ok) {
+      throw new Error(`Road lookup returned ${response.status}`);
+    }
 
     const data = await response.json();
     const address = data.address || {};
@@ -469,10 +916,12 @@ async function updateWeather(lat, lon) {
   $('weatherList').innerHTML = '<div class="weather-message">Updating forecast…</div>';
 
   try {
-    const url = https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&hourly=precipitation_probability,weather_code&forecast_days=2&timezone=auto;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&hourly=precipitation_probability,weather_code&forecast_days=2&timezone=auto`;
     const response = await fetch(url);
 
-    if (!response.ok) throw new Error(Weather request returned ${response.status});
+    if (!response.ok) {
+      throw new Error(`Weather request returned ${response.status}`);
+    }
 
     const data = await response.json();
     const hourly = data.hourly;
@@ -482,9 +931,9 @@ async function updateWeather(lat, lon) {
     }
 
     // Start with the next forecast hour and show four hourly periods.
-    const now = Date.now();
+    const currentTime = Date.now();
 
-    let startIndex = hourly.time.findIndex(t => new Date(t).getTime() >= now);
+    let startIndex = hourly.time.findIndex(t => new Date(t).getTime() >= currentTime);
     if (startIndex < 0) startIndex = 0;
 
     const rows = [];
@@ -501,7 +950,7 @@ async function updateWeather(lat, lon) {
           <span class="weather-icon">${icon}</span>
           <span>
             <span class="weather-time">${label}</span>
-            <span class="weather-rain">${rain == null ? '' : ${rain}% rain}</span>
+            <span class="weather-rain">${rain == null ? '' : `${rain}% rain`}</span>
           </span>
         </div>
       `);
@@ -513,6 +962,7 @@ async function updateWeather(lat, lon) {
 
   } catch (error) {
     $('weatherList').innerHTML = '<div class="weather-message">Forecast unavailable</div>';
+
     // Allow another attempt after ten minutes if the service is temporarily unavailable.
     lastWeatherRequest = Date.now() - 20 * 60 * 1000;
 
@@ -540,8 +990,8 @@ function startGPS() {
     setGps(
       a <= 20 ? 'ok' : 'wait',
       a <= 20
-        ? GPS ready · accurate to ±${a} m
-        : Weak signal · ±${a} m. Move to open sky.,
+        ? `GPS ready · accurate to ±${a} m`
+        : `Weak signal · ±${a} m. Move to open sky.`,
       p.coords
     );
 
@@ -679,7 +1129,6 @@ $('shutter').onclick = async () => {
 
   try {
     const still = await grabStill();
-
     const rec = await save(still.src, still.w, still.h, p);
 
     toast(rec.lat == null ? 'Saved, but there was no GPS fix' : 'Photo saved ✓');
@@ -706,13 +1155,13 @@ async function save(source, w, h, p) {
 
   // Keep BNG coordinates, but do not bake latitude/longitude into the image.
   const enText = en
-    ? E ${en.e.toFixed(2)}   N ${en.n.toFixed(2)}   (BNG)
+    ? `E ${en.e.toFixed(2)}   N ${en.n.toFixed(2)}   (BNG)`
     : 'E/N unavailable (outside GB grid)';
 
   const lines = c
     ? [
         enText,
-        ±${Math.round(c.accuracy)} m   ${when}
+        `±${Math.round(c.accuracy)} m   ${when}`
       ]
     : ['No GPS fix', when];
 
@@ -740,7 +1189,7 @@ async function save(source, w, h, p) {
 
   x.fillStyle = '#fff';
   x.textBaseline = 'top';
-  x.font = bold ${fs}px ui-monospace, Menlo, Consolas, monospace;
+  x.font = `bold ${fs}px ui-monospace, Menlo, Consolas, monospace`;
 
   lines.forEach((t, i) => {
     x.fillText(t, fs * 0.6, h - barH + fs * 0.5 + i * fs * 1.4);
@@ -754,7 +1203,7 @@ async function save(source, w, h, p) {
 
   th.getContext('2d').drawImage(cv, 0, 0, th.width, th.height);
 
-  const stamp = ${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())};
+  const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
 
   const rec = {
     blob: await toBlob(cv, 0.95),
@@ -766,7 +1215,7 @@ async function save(source, w, h, p) {
     e: en ? en.e : null,
     n: en ? en.n : null,
     time: now.getTime(),
-    name: geocam_${stamp}${c ? '' : '_nogps'}.jpg
+    name: `geocam_${stamp}${c ? '' : '_nogps'}.jpg`
   };
 
   await tx('readwrite', s => s.add(rec));
@@ -811,7 +1260,7 @@ async function render() {
 
     // Show BNG coordinates in the gallery, never latitude/longitude.
     const place = r.e != null
-      ? E ${r.e.toFixed(2)} · N ${r.n.toFixed(2)}
+      ? `E ${r.e.toFixed(2)} · N ${r.n.toFixed(2)}`
       : 'No BNG coordinates available';
 
     const t = document.createElement('div');
@@ -825,7 +1274,7 @@ async function render() {
           timeStyle: 'short'
         })}</b>
         <span>${place}</span>
-        <span>${r.w ? ${r.w}×${r.h} · ${(r.blob.size / 1048576).toFixed(1)} MB : ''}</span>
+        <span>${r.w ? `${r.w}×${r.h} · ${(r.blob.size / 1048576).toFixed(1)} MB` : ''}</span>
       </div>
       <div class="acts"></div>
       <button class="btn link del">Delete</button>
@@ -841,6 +1290,7 @@ async function render() {
 
       v.onclick = () => {
         v.style.display = 'none';
+        v.firstElementChild.src = '';
         URL.revokeObjectURL(vu);
       };
     };
@@ -882,7 +1332,7 @@ $('dlAll').onclick = async () => {
 /* ---------- Delete all photos ---------- */
 
 $('delAll').onclick = async () => {
-  if (confirm(Delete all ${photos.length} photos from this device? Make sure you’ve downloaded them first.)) {
+  if (confirm(`Delete all ${photos.length} photos from this device? Make sure you’ve downloaded them first.`)) {
     await tx('readwrite', s => s.clear());
     render();
   }
