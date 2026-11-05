@@ -27,18 +27,29 @@ header h1{
 }
 main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
 
-/* GPS card */
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+/* GPS and weather card */
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.card-layout{display:grid;grid-template-columns:58% 42%;align-items:stretch}
+.gps-info{min-width:0;padding-right:10px}
 .status{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--mut)}
 .dot{width:10px;height:10px;border-radius:50%;background:var(--warn);flex:none}
 [data-state=ok] .dot{background:var(--ok)}
 [data-state=bad] .dot{background:var(--bad)}
-.en{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0 6px}
-.en small{display:block;font-size:12px;color:var(--mut)}
-.en b{font:600 22px ui-monospace,SFMono-Regular,Menlo,monospace}
+.en{display:grid;grid-template-columns:max-content max-content;column-gap:9px;margin:8px 0 2px}
+.en small{display:block;font-size:10px;color:var(--mut)}
+.en b{font:600 13px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.5px}
 .road{display:flex;flex-direction:column;gap:2px;margin-top:8px}
-.road small{font-size:10px;color:var(--mut)}
-.road b{font-size:16px;font-weight:700;overflow-wrap:anywhere}
+.road small{font-size:9px;color:var(--mut);letter-spacing:.25px}
+.road b{font-size:14px;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+.weather-panel{min-width:0;border-left:1px solid var(--line);padding-left:10px}
+.weather-title{font-size:9px;font-weight:700;letter-spacing:.35px;color:var(--mut);margin:0 0 5px}
+.weather-list{display:grid;gap:3px}
+.weather-row{display:grid;grid-template-columns:22px minmax(0,1fr) auto;align-items:center;gap:3px;min-height:22px}
+.weather-icon{font-size:16px;line-height:1;text-align:center}
+.weather-time{font-size:10px;color:var(--mut);white-space:nowrap}
+.weather-rain{display:block;font-size:8px;color:var(--mut);line-height:1.1}
+.weather-temp{font-size:11px;font-weight:700;white-space:nowrap}
+.weather-message{font-size:10px;color:var(--mut);line-height:1.3}
 .map-credit{margin:18px 0 0;text-align:center;font-size:10px;color:var(--mut)}
 
 /* Take photo */
@@ -81,12 +92,26 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 /* Compact mobile layout */
 @media (max-width:600px){
   main{padding:8px 10px calc(20px + env(safe-area-inset-bottom))}
-  .card{padding:7px 10px;border-radius:10px}
-  .status{font-size:12px;gap:6px}
-  .dot{width:8px;height:8px}
-  .en{gap:8px;margin:4px 0 2px}
-  .en small{font-size:10px}
-  .en b{font-size:15px;line-height:1.25}
+  .card{padding:8px;border-radius:10px}
+  .card-layout{grid-template-columns:58% 42%}
+  .gps-info{padding-right:7px}
+  .status{font-size:11px;gap:5px}
+  .dot{width:7px;height:7px}
+  .en{column-gap:6px;margin:7px 0 1px}
+  .en small{font-size:9px}
+  .en b{font-size:12px;line-height:1.25;letter-spacing:-.7px}
+  .road{margin-top:7px}
+  .road small{font-size:8px}
+  .road b{font-size:12px}
+  .weather-panel{padding-left:7px}
+  .weather-title{font-size:8px;margin-bottom:4px}
+  .weather-list{gap:2px}
+  .weather-row{grid-template-columns:19px minmax(0,1fr) auto;gap:2px;min-height:22px}
+  .weather-icon{font-size:14px}
+  .weather-time{font-size:9px}
+  .weather-rain{font-size:7px}
+  .weather-temp{font-size:10px}
+  .weather-message{font-size:9px}
   .live{margin-top:8px}
   .cam{
     aspect-ratio:auto;
@@ -109,26 +134,37 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 
 <main>
 
-  <!-- GPS information -->
+  <!-- GPS information and weather -->
   <section class="card" id="gpsCard" data-state="wait">
-    <div class="status">
-      <span class="dot"></span>
-      <span id="gpsStatus">Finding your location…</span>
-    </div>
+    <div class="card-layout">
+      <div class="gps-info">
+        <div class="status">
+          <span class="dot"></span>
+          <span id="gpsStatus">Finding your location…</span>
+        </div>
 
-    <div class="road">
-      <small>APPROXIMATE ROAD LOCATION</small>
-      <b id="roadName">Locating approximate road location…</b>
-    </div>
+        <div class="road">
+          <small>APPROXIMATE ROAD LOCATION</small>
+          <b id="roadName">Locating road…</b>
+        </div>
 
-    <div class="en">
-      <div>
-        <small>Easting</small>
-        <b id="gpsE">–</b>
+        <div class="en">
+          <div>
+            <small>Easting</small>
+            <b id="gpsE">–</b>
+          </div>
+          <div>
+            <small>Northing</small>
+            <b id="gpsN">–</b>
+          </div>
+        </div>
       </div>
-      <div>
-        <small>Northing</small>
-        <b id="gpsN">–</b>
+
+      <div class="weather-panel">
+        <div class="weather-title">NEXT 4 HOURS</div>
+        <div class="weather-list" id="weatherList">
+          <div class="weather-message">Waiting for GPS…</div>
+        </div>
       </div>
     </div>
   </section>
@@ -166,8 +202,7 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
   <div class="empty" id="empty">No photos yet. Tap <b>Take photo</b> to get started.</div>
   <div class="grid" id="grid"></div>
 
-  <!-- Required OpenStreetMap attribution -->
-  <p class="map-credit">Map data © OpenStreetMap contributors</p>
+  <p class="map-credit">Map data © OpenStreetMap contributors · Weather data © Open-Meteo</p>
 
 </main>
 
@@ -294,7 +329,7 @@ function setGps(state, status, c) {
   $('gpsN').textContent = en ? en.n.toFixed(1) : '–';
 }
 
-/* ---------- Reverse geocoding: GPS -> approximate road location ---------- */
+/* ---------- Reverse geocoding: GPS -> road name ---------- */
 
 let lastRoadLookup = 0;
 let lastRoadPosition = null;
@@ -358,6 +393,102 @@ async function updateRoadName(lat, lon) {
   }
 }
 
+/* ---------- Four-hour weather forecast ---------- */
+
+let lastWeatherRequest = 0;
+let lastWeatherPosition = null;
+let weatherRequestActive = false;
+
+// Convert forecast codes into simple weather icons and descriptions.
+function weatherSymbol(code) {
+  if (code === 0) return ['☀️', 'Clear'];
+  if (code === 1 || code === 2) return ['🌤️', 'Partly cloudy'];
+  if (code === 3) return ['☁️', 'Cloudy'];
+  if (code === 45 || code === 48) return ['🌫️', 'Fog'];
+  if (code >= 51 && code <= 57) return ['🌦️', 'Drizzle'];
+  if (code >= 61 && code <= 67) return ['🌧️', 'Rain'];
+  if (code >= 71 && code <= 77) return ['🌨️', 'Snow'];
+  if (code >= 80 && code <= 82) return ['🌧️', 'Showers'];
+  if (code === 85 || code === 86) return ['🌨️', 'Snow showers'];
+  if (code >= 95) return ['⛈️', 'Thunderstorm'];
+  return ['🌥️', 'Mixed'];
+}
+
+// Fetch a forecast for the current GPS position.
+async function updateWeather(lat, lon) {
+  const now = Date.now();
+
+  // Refresh every 30 minutes, or after moving more than 5 km.
+  if (weatherRequestActive) return;
+
+  if (lastWeatherPosition) {
+    const latMetres = (lat - lastWeatherPosition.lat) * 111320;
+    const lonMetres = (lon - lastWeatherPosition.lon) * 111320 * Math.cos(lat * Math.PI / 180);
+    const distance = Math.hypot(latMetres, lonMetres);
+
+    if (distance < 5000 && now - lastWeatherRequest < 30 * 60 * 1000) return;
+  }
+
+  lastWeatherRequest = now;
+  lastWeatherPosition = { lat, lon };
+  weatherRequestActive = true;
+  $('weatherList').innerHTML = '<div class="weather-message">Updating forecast…</div>';
+
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&hourly=temperature_2m,precipitation_probability,weather_code&forecast_days=2&timezone=auto`;
+    const response = await fetch(url);
+
+    if (!response.ok) throw new Error(`Weather request returned ${response.status}`);
+
+    const data = await response.json();
+    const hourly = data.hourly;
+
+    if (!hourly || !hourly.time || !hourly.temperature_2m) {
+      throw new Error('Forecast data was incomplete');
+    }
+
+    // Start with the next forecast hour and show four hourly periods.
+    const now = Date.now();
+
+    let startIndex = hourly.time.findIndex(t => new Date(t).getTime() >= now);
+    if (startIndex < 0) startIndex = 0;
+
+    const rows = [];
+
+    for (let i = startIndex; i < Math.min(startIndex + 4, hourly.time.length); i++) {
+      const time = new Date(hourly.time[i]);
+      const label = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const temp = hourly.temperature_2m[i];
+      const rain = hourly.precipitation_probability?.[i];
+      const code = hourly.weather_code?.[i] ?? 0;
+      const [icon, description] = weatherSymbol(code);
+
+      rows.push(`
+        <div class="weather-row" title="${description}">
+          <span class="weather-icon">${icon}</span>
+          <span>
+            <span class="weather-time">${label}</span>
+            <span class="weather-rain">${rain == null ? '' : `${rain}% rain`}</span>
+          </span>
+          <span class="weather-temp">${Math.round(temp)}°</span>
+        </div>
+      `);
+    }
+
+    $('weatherList').innerHTML = rows.length
+      ? rows.join('')
+      : '<div class="weather-message">Forecast unavailable</div>';
+
+  } catch (error) {
+    $('weatherList').innerHTML = '<div class="weather-message">Forecast unavailable</div>';
+    // Allow another attempt after ten minutes if the service is temporarily unavailable.
+    lastWeatherRequest = Date.now() - 20 * 60 * 1000;
+
+  } finally {
+    weatherRequestActive = false;
+  }
+}
+
 /* ---------- Start GPS tracking ---------- */
 
 function startGPS() {
@@ -368,8 +499,9 @@ function startGPS() {
   navigator.geolocation.watchPosition(p => {
     pos = p;
 
-    // Update the approximate road location using the latest GPS coordinates.
+    // Update the road name and local weather using the latest GPS coordinates.
     updateRoadName(p.coords.latitude, p.coords.longitude);
+    updateWeather(p.coords.latitude, p.coords.longitude);
 
     const a = Math.round(p.coords.accuracy);
 
