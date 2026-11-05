@@ -7,80 +7,107 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="GeoCam">
 <meta name="theme-color" content="#14212b">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2314212b'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23d9480f'/%3E%3C/svg%3E">
 <title>SJS GeoCam</title>
 <style>
-:root{--bg:#eef1f2;--ink:#14212b;--mut:#5d6b76;--card:#fff;--line:#d3dadf;--acc:#ff5a1f;--ok:#1b7a4b;--bad:#c62828}
-*{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-body{max-width:760px;margin:0 auto;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:12px}
-h1{font-size:20px;margin:0;font-weight:700}
-#gps{font:13px ui-monospace,SFMono-Regular,Menlo,monospace;padding:5px 10px;border-radius:6px;background:var(--card);border:1px solid var(--line);color:var(--mut)}
-#gps.ok{color:var(--ok);border-color:var(--ok)}
-#gps.bad{color:var(--bad);border-color:var(--bad)}
-.cam{position:relative;background:#000;width:100%;aspect-ratio:3/4;max-height:68vh}
-video{width:100%;height:100%;object-fit:contain;display:block}
-video.shot{animation:flash .25s}
-@keyframes flash{from{opacity:.2}to{opacity:1}}
-#camMsg{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;color:#fff}
-/* Shutter row: empty spacer | shutter | Photos button, so the shutter stays centred */
-.shutterRow{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:14px 12px 6px}
-#toPhotos{justify-self:end}
-#hint{margin:0;padding:0 12px 8px;text-align:center;font-size:13px;color:var(--mut);min-height:1.4em}
-#shutter{display:block;margin:0;width:76px;height:76px;border-radius:50%;border:5px solid var(--ink);background:var(--acc);cursor:pointer}
-#shutter:active{transform:scale(.94)}
-#shutter:disabled{opacity:.5}
-.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:12px}
-.bar h2{font-size:17px;margin:0}
-button.b{font:inherit;font-size:14px;padding:8px 12px;border-radius:6px;border:1px solid var(--ink);background:var(--card);color:var(--ink);cursor:pointer}
-button.b.p{background:var(--ink);color:#fff}
-button.b.d{border-color:var(--bad);color:var(--bad)}
-#gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;padding:0 12px 24px}
-.item{background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden;display:flex;flex-direction:column}
-.item img{width:100%;display:block;cursor:zoom-in}
-.item .m{font:12px ui-monospace,Menlo,monospace;color:var(--mut);padding:6px 8px}
-.item .r{display:flex;gap:6px;padding:0 8px 8px;flex-wrap:wrap}
-.empty{grid-column:1/-1;color:var(--mut);padding:8px 0}
+:root{--bg:#f1f4f6;--card:#fff;--ink:#14212b;--mut:#5d6b76;--line:#d9e0e5;--acc:#d9480f;--acc2:#a83a0a;--ok:#1b7a4b;--warn:#b26a00;--bad:#c62828}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--ink);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 16px 14px}
+header h1{margin:0;font-size:20px;font-weight:700;max-width:720px;margin:0 auto}
+header span{font-weight:400;opacity:.7;font-size:14px;margin-left:8px}
+main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
+
+/* Location card */
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.status{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--mut)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--warn);flex:none}
+[data-state=ok] .dot{background:var(--ok)}
+[data-state=bad] .dot{background:var(--bad)}
+.en{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0 6px}
+.en small{display:block;font-size:12px;color:var(--mut)}
+.en b{font:600 22px ui-monospace,SFMono-Regular,Menlo,monospace}
+.ll{font:13px ui-monospace,Menlo,monospace;color:var(--mut)}
+.note{font-size:12px;color:var(--mut);margin-top:6px}
+
+/* Take photo */
+.take{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:16px 0 6px;padding:20px;font-family:inherit;font-size:21px;font-weight:700;background:var(--acc);color:#fff;border:0;border-radius:14px;box-shadow:0 3px 0 var(--acc2);cursor:pointer}
+.take:active{transform:translateY(2px);box-shadow:0 1px 0 var(--acc2)}
+.hint{margin:0;text-align:center;font-size:13px;color:var(--mut)}
+
+/* Photos */
+.bar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:26px 0 12px}
+.bar h2{margin:0;font-size:18px}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font:inherit;font-size:14px;font-weight:600;padding:9px 14px;border-radius:9px;border:1.5px solid var(--ink);background:var(--card);color:var(--ink);cursor:pointer}
+.btn.pri{background:var(--ink);color:#fff}
+.btn.link{border:0;background:none;color:var(--bad);font-weight:500}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:12px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.tile img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;cursor:zoom-in;background:#dde3e7}
+.meta{padding:8px 10px 2px;font-size:12px;color:var(--mut);display:grid;gap:1px}
+.meta b{color:var(--ink);font-size:13px}
+.acts{display:flex;gap:6px;padding:6px 10px 0}
+.acts .btn{flex:1;padding:8px 6px;font-size:13px}
+.del{margin:2px 10px 6px;padding:6px;font-size:13px}
+.empty{border:2px dashed var(--line);border-radius:12px;padding:28px 16px;text-align:center;color:var(--mut)}
+
+/* Toast + full-size viewer */
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:99px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90%;text-align:center}
+#toast.show{opacity:1}
 #view{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:9}
 #view img{max-width:100%;max-height:100%}
 </style>
 </head>
 <body>
-<header>
-  <h1>GeoCam</h1>
-  <div id="gps">Waiting for GPS…</div>
-</header>
+<header><h1>GeoCam<span>GPS-stamped photos</span></h1></header>
 
-<div class="cam">
-  <video id="video" autoplay playsinline muted></video>
-  <div id="camMsg">Live camera unavailable. Use “Full-quality camera” below instead.</div>
-</div>
-<div class="shutterRow">
-  <span></span>
-  <button id="shutter" aria-label="Take photo"></button>
-  <!-- Jumps down to the photo list (the page scrolls). Label shows the photo count. -->
-  <button class="b p" id="toPhotos">Photos ↓</button>
-</div>
-<p id="hint"></p>
+<main>
+  <section class="card" id="gpsCard" data-state="wait">
+    <div class="status"><span class="dot"></span><span id="gpsStatus">Finding your location…</span></div>
+    <div class="en">
+      <div><small>Easting</small><b id="gpsE">–</b></div>
+      <div><small>Northing</small><b id="gpsN">–</b></div>
+    </div>
+    <div class="ll" id="gpsLL"></div>
+    <div class="note">British National Grid. These values are stamped on every photo.</div>
+  </section>
 
-<div class="bar" id="photosBar">
-  <h2>Photos (<span id="count">0</span>)</h2>
-  <div style="display:flex;gap:8px;flex-wrap:wrap">
-    <button class="b" id="toCam">Camera ↑</button>
-    <button class="b" id="fallbackBtn">Full-quality camera</button>
-    <button class="b p" id="shareAll">Share all</button>
-    <button class="b p" id="dlAll">Download all</button>
+  <button class="take" id="take">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+    Take photo
+  </button>
+  <p class="hint">Opens your camera. Take the photo, then confirm it (“Use Photo” on iPhone, ✓ on Android).</p>
+  <input type="file" id="cam" accept="image/*" capture="environment" hidden>
+
+  <div class="bar">
+    <h2>Photos (<span id="count">0</span>)</h2>
+    <div class="tools" id="tools">
+      <button class="btn pri" id="shareAll">Share all</button>
+      <button class="btn" id="dlAll">Download all</button>
+      <button class="btn link" id="delAll">Delete all</button>
+    </div>
   </div>
-</div>
-<input type="file" id="fallback" accept="image/*" capture="environment" hidden>
-<div id="gallery"></div>
+  <div class="empty" id="empty">No photos yet. Tap <b>Take photo</b> to get started.</div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<div id="toast"></div>
 <div id="view"><img alt=""></div>
 
 <script>
 const $ = id => document.getElementById(id);
-const video = $('video'), gallery = $('gallery');
-let db, stream, pos = null, urls = [], imgCap = null;   // imgCap = full-resolution still capture (Android/Chrome)
-let photos = [];   // copy of the saved photos, kept in memory so "Share all" can run instantly on tap
+let db, pos = null, tapPos = null, photos = [], urls = [];
+const pad = n => String(n).padStart(2, '0');
+const toBlob = (c, q) => new Promise(r => c.toBlob(r, 'image/jpeg', q));
+
+/* ---------- Small pop-up message ---------- */
+let toastTimer;
+function toast(msg, sticky) {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  if (!sticky) toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
 
 /* ---------- Storage: IndexedDB keeps photos on this device between visits ---------- */
 function openDB() {
@@ -98,46 +125,6 @@ function tx(mode, fn) {
     t.onerror = () => rej(t.error);
   });
 }
-
-/* ---------- GPS: keep the latest fix so a photo can use it instantly ---------- */
-function setGps(text, cls) { const g = $('gps'); g.textContent = text; g.className = cls || ''; }
-function startGPS() {
-  if (!navigator.geolocation) return setGps('GPS not supported', 'bad');
-  navigator.geolocation.watchPosition(p => {
-    pos = p;
-    const c = p.coords;
-    const en = toBNG(c.latitude, c.longitude);
-    setGps(`${c.latitude.toFixed(6)}, ${c.longitude.toFixed(6)} ±${Math.round(c.accuracy)} m` +
-           (en ? `  |  E ${Math.round(en.e)}  N ${Math.round(en.n)}` : ''), 'ok');
-  }, e => {
-    if (e.code === 1) setGps('Location blocked. Allow it in browser settings.', 'bad');
-    else if (!pos) setGps('No GPS fix yet…', 'bad');
-  }, { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 });
-}
-
-/* ---------- Camera ---------- */
-async function startCam() {
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 3840 }, height: { ideal: 2160 } },
-      audio: false
-    });
-    video.srcObject = stream;
-    await video.play();
-    // Where supported (Android Chrome), ImageCapture takes a real full-resolution still,
-    // which is much sharper than grabbing a frame from the live video.
-    try { imgCap = ('ImageCapture' in window) ? new ImageCapture(stream.getVideoTracks()[0]) : null; }
-    catch (e) { imgCap = null; }
-    $('camMsg').style.display = 'none';
-  } catch (e) {
-    $('camMsg').style.display = 'flex';
-  }
-}
-// iOS pauses the camera when the app is backgrounded, so restart it on return
-document.addEventListener('visibilitychange', () => {
-  const t = stream && stream.getVideoTracks()[0];
-  if (!document.hidden && (!t || t.readyState !== 'live')) startCam();
-});
 
 /* ---------- Easting/Northing: WGS84 lat/lon -> British National Grid (OSGB36) ----------
    Uses Ordnance Survey's 7-parameter Helmert shift + Transverse Mercator formulae.
@@ -200,31 +187,62 @@ function toBNG(latDeg, lonDeg) {
   return { e: east, n: north };
 }
 
-/* ---------- Stamp the GPS text onto the image and save ---------- */
-const toBlob = (c, q) => new Promise(r => c.toBlob(r, 'image/jpeg', q));
-const pad = n => String(n).padStart(2, '0');
+/* ---------- GPS: keep the latest fix and show it in the card ---------- */
+function setGps(state, status, c) {
+  $('gpsCard').dataset.state = state;          // ok | wait | bad (colours the status dot)
+  $('gpsStatus').textContent = status;
+  const en = c && toBNG(c.latitude, c.longitude);
+  $('gpsE').textContent = en ? en.e.toFixed(1) : '–';
+  $('gpsN').textContent = en ? en.n.toFixed(1) : '–';
+  $('gpsLL').textContent = c ? `Lat ${c.latitude.toFixed(6)}   Lon ${c.longitude.toFixed(6)}` : '';
+}
+function startGPS() {
+  if (!navigator.geolocation) return setGps('bad', 'GPS isn’t available on this device');
+  navigator.geolocation.watchPosition(p => {
+    pos = p;
+    const a = Math.round(p.coords.accuracy);
+    setGps(a <= 20 ? 'ok' : 'wait', a <= 20 ? `GPS ready · accurate to ±${a} m` : `Weak signal · ±${a} m. Move to open sky.`, p.coords);
+  }, e => {
+    if (e.code === 1) setGps('bad', 'Location is blocked. Allow it in your browser settings, then reload.');
+    else if (!pos) setGps('wait', 'Still looking for a GPS signal…');
+  }, { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 });
+}
 
-async function save(source, w, h, p = pos) {   // p = GPS fix to stamp (defaults to the latest)
+/* ---------- Take a photo with the phone's own camera app ---------- */
+// Lock in the GPS fix at the moment of the tap (the page is in the background while the camera is open)
+$('take').onclick = () => { tapPos = pos; $('cam').click(); };
+$('cam').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  toast('Saving photo…', true);
+  try {
+    const img = new Image(), u = URL.createObjectURL(f);
+    img.src = u; await img.decode();
+    const rec = await save(img, img.naturalWidth, img.naturalHeight, tapPos || pos);
+    URL.revokeObjectURL(u);
+    toast(rec.lat == null ? 'Saved, but there was no GPS fix' : 'Photo saved ✓');
+  } catch (err) { toast('Couldn’t save that photo'); }
+  tapPos = null; e.target.value = '';
+};
+
+/* ---------- Stamp the GPS text onto the photo and save it ---------- */
+async function save(source, w, h, p) {
   const now = new Date(), c = p && p.coords;
   const when = now.toLocaleString([], { dateStyle: 'medium', timeStyle: 'medium' });
-  // Easting/Northing (British National Grid) from the same GPS fix
   const en = c ? toBNG(c.latitude, c.longitude) : null;
   const enText = en ? `E ${en.e.toFixed(1)}   N ${en.n.toFixed(1)}   (BNG)` : 'E/N unavailable (outside GB grid)';
   const lines = c
     ? [`Lat ${c.latitude.toFixed(6)}   Lon ${c.longitude.toFixed(6)}`, enText, `±${Math.round(c.accuracy)} m   ${when}`]
     : ['No GPS fix', when];
 
-  // Cap at ~16 megapixels so very large photos can't exceed browser canvas limits (iPhone Safari is strictest).
-  // Normal 12 MP phone photos are untouched.
+  // Cap at ~16 megapixels so huge photos can't exceed browser limits (normal 12 MP photos are untouched)
   const k = Math.min(1, Math.sqrt(16e6 / (w * h)));
   w = Math.round(w * k); h = Math.round(h * k);
-
   const cv = document.createElement('canvas');
   cv.width = w; cv.height = h;
   const x = cv.getContext('2d');
   x.drawImage(source, 0, 0, w, h);
 
-  // Text bar along the bottom, sized relative to the photo
+  // Dark text bar along the bottom, sized relative to the photo
   const fs = Math.max(16, Math.round(Math.min(w, h) * 0.03));
   const barH = Math.round(lines.length * fs * 1.4 + fs);
   x.fillStyle = 'rgba(0,0,0,.65)';
@@ -234,126 +252,95 @@ async function save(source, w, h, p = pos) {   // p = GPS fix to stamp (defaults
   x.font = `bold ${fs}px ui-monospace, Menlo, Consolas, monospace`;
   lines.forEach((t, i) => x.fillText(t, fs * 0.6, h - barH + fs * 0.5 + i * fs * 1.4));
 
-  // Small thumbnail for the gallery
+  // Small thumbnail for the grid
   const th = document.createElement('canvas');
   th.width = 360; th.height = Math.round(360 * h / w);
   th.getContext('2d').drawImage(cv, 0, 0, th.width, th.height);
 
-  const stampName = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+  const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
   const rec = {
-    blob: await toBlob(cv, 0.95),   // high JPEG quality
+    blob: await toBlob(cv, 0.95),            // high JPEG quality
     thumb: await toBlob(th, 0.8),
-    w, h,                           // pixel size, shown in the gallery so you can check quality
+    w, h,
     lat: c ? c.latitude : null, lon: c ? c.longitude : null, acc: c ? c.accuracy : null,
+    e: en ? en.e : null, n: en ? en.n : null,
     time: now.getTime(),
-    name: `geocam_${stampName}${c ? `_${c.latitude.toFixed(5)}_${c.longitude.toFixed(5)}` : '_nogps'}.jpg`
+    name: `geocam_${stamp}${c ? `_${c.latitude.toFixed(5)}_${c.longitude.toFixed(5)}` : '_nogps'}.jpg`
   };
   await tx('readwrite', s => s.add(rec));
   render();
   return rec;
 }
 
-// Get the best image the browser can give us.
-async function grabStill() {
-  if (imgCap) {
-    try {
-      // Ask the camera for its largest still size (capped at ~16 MP so huge sensors don't run out of memory)
-      const caps = await imgCap.getPhotoCapabilities();
-      const opts = {};
-      if (caps.imageWidth && caps.imageHeight) {
-        let w = caps.imageWidth.max, h = caps.imageHeight.max;
-        const k = Math.min(1, Math.sqrt(16e6 / (w * h)));
-        opts.imageWidth = Math.round(w * k); opts.imageHeight = Math.round(h * k);
-      }
-      const bmp = await createImageBitmap(await imgCap.takePhoto(opts));
-      return { src: bmp, w: bmp.width, h: bmp.height, how: 'still' };
-    } catch (e) { /* not supported or failed: use the video frame below */ }
-  }
-  // Fallback (iPhone Safari): a frame from the live video. The browser limits its resolution.
-  return { src: video, w: video.videoWidth, h: video.videoHeight, how: 'video' };
+/* ---------- Photo grid: share, download, delete ---------- */
+const asFile = r => new File([r.blob], r.name, { type: 'image/jpeg' });
+async function share(files) {
+  try { await navigator.share({ files }); } catch (e) { /* cancelled */ }
 }
-
-$('shutter').onclick = async () => {
-  if (!video.videoWidth) return;
-  const b = $('shutter'); b.disabled = true;
-  video.classList.remove('shot'); void video.offsetWidth; video.classList.add('shot');
-  const p = pos;                       // lock in the GPS fix from the moment of the tap
-  const still = await grabStill();
-  const rec = await save(still.src, still.w, still.h, p);
-  // Tell the user what they got, so quality is never a mystery
-  $('hint').textContent = still.how === 'still'
-    ? `Full-resolution photo saved (${rec.w}×${rec.h}).`
-    : `Saved from live video (${rec.w}×${rec.h}). For full quality use “Full-quality camera”.`;
-  b.disabled = false;
-};
-
-// Fallback: use the phone's own camera app (full-resolution photo, GPS taken when you return)
-$('fallbackBtn').onclick = () => $('fallback').click();
-$('fallback').onchange = async e => {
-  const f = e.target.files[0]; if (!f) return;
-  const img = new Image(), u = URL.createObjectURL(f);
-  img.src = u; await img.decode();
-  await save(img, img.naturalWidth, img.naturalHeight);
-  URL.revokeObjectURL(u); e.target.value = '';
-};
-
-/* ---------- Gallery, download, share, delete ---------- */
 function download(r) {
   const u = URL.createObjectURL(r.blob), a = document.createElement('a');
   a.href = u; a.download = r.name;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(u), 10000);
 }
-async function share(r) {
-  try { await navigator.share({ files: [new File([r.blob], r.name, { type: 'image/jpeg' })] }); } catch (e) {}
-}
+
 async function render() {
-  const list = (await tx('readonly', s => s.getAll())).reverse();
-  photos = list;
+  photos = (await tx('readonly', s => s.getAll())).reverse();    // newest first
   urls.forEach(URL.revokeObjectURL); urls = [];
-  $('count').textContent = list.length;
-  $('toPhotos').textContent = `Photos (${list.length}) ↓`;
-  gallery.innerHTML = list.length ? '' : '<div class="empty">No photos yet. Tap the orange button to take one.</div>';
-  for (const r of list) {
-    const u = URL.createObjectURL(r.thumb); urls.push(u);
-    const d = document.createElement('div'); d.className = 'item';
-    d.innerHTML = `<img src="${u}" alt="Photo"><div class="m">${r.lat == null ? 'No GPS' : r.lat.toFixed(5) + ', ' + r.lon.toFixed(5)}${r.w ? `<br>${r.w}×${r.h} · ${(r.blob.size / 1048576).toFixed(1)} MB` : ''}</div><div class="r"></div>`;
-    d.querySelector('img').onclick = () => {
+  $('count').textContent = photos.length;
+  $('tools').style.display = photos.length ? '' : 'none';
+  $('empty').style.display = photos.length ? 'none' : '';
+  $('shareAll').style.display = navigator.canShare ? '' : 'none';   // hide where sharing files isn't supported
+  const grid = $('grid'); grid.innerHTML = '';
+
+  for (const r of photos) {
+    const file = asFile(r), u = URL.createObjectURL(r.thumb); urls.push(u);
+    const place = r.e != null ? `E ${r.e.toFixed(1)} · N ${r.n.toFixed(1)}`
+                : r.lat != null ? `${r.lat.toFixed(5)}, ${r.lon.toFixed(5)}` : 'No GPS fix';
+    const t = document.createElement('div'); t.className = 'tile';
+    t.innerHTML = `<img src="${u}" alt="Photo">
+      <div class="meta"><b>${new Date(r.time).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</b>
+        <span>${place}</span><span>${r.w ? `${r.w}×${r.h} · ${(r.blob.size / 1048576).toFixed(1)} MB` : ''}</span></div>
+      <div class="acts"></div><button class="btn link del">Delete</button>`;
+
+    // Tap the picture to see it full size
+    t.querySelector('img').onclick = () => {
       const v = $('view'), vu = URL.createObjectURL(r.blob);
       v.firstElementChild.src = vu; v.style.display = 'flex';
       v.onclick = () => { v.style.display = 'none'; URL.revokeObjectURL(vu); };
     };
-    const row = d.querySelector('.r');
-    const add = (label, cls, fn) => { const b = document.createElement('button'); b.className = 'b ' + cls; b.textContent = label; b.onclick = fn; row.appendChild(b); };
+    const acts = t.querySelector('.acts');
+    const add = (label, cls, fn) => { const b = document.createElement('button'); b.className = 'btn ' + cls; b.textContent = label; b.onclick = fn; acts.appendChild(b); };
+    if (navigator.canShare && navigator.canShare({ files: [file] })) add('Share', 'pri', () => share([file]));
     add('Download', '', () => download(r));
-    if (navigator.canShare && navigator.canShare({ files: [new File([r.blob], r.name, { type: 'image/jpeg' })] })) add('Share', '', () => share(r));
-    add('Delete', 'd', async () => { if (confirm('Delete this photo?')) { await tx('readwrite', s => s.delete(r.id)); render(); } });
-    gallery.appendChild(d);
+    t.querySelector('.del').onclick = async () => {
+      if (confirm('Delete this photo?')) { await tx('readwrite', s => s.delete(r.id)); render(); }
+    };
+    grid.appendChild(t);
   }
 }
+
+// Share all: one share sheet with every photo (pick WhatsApp there). Built from the in-memory list so it runs straight from the tap.
+$('shareAll').onclick = () => {
+  const files = photos.map(asFile);
+  if (!navigator.canShare || !navigator.canShare({ files })) return toast('Sharing this many photos isn’t supported here. Try Download all.');
+  share(files);
+};
 $('dlAll').onclick = async () => {
-  const list = await tx('readonly', s => s.getAll());
-  for (const r of list) { download(r); await new Promise(res => setTimeout(res, 500)); }
+  for (const r of photos) { download(r); await new Promise(res => setTimeout(res, 500)); }
 };
-
-/* ---------- Share all: one share sheet with every photo (iPhone: "Save Images" puts them in Photos) ---------- */
-$('shareAll').onclick = async () => {
-  if (!photos.length) return alert('No photos to share yet.');
-  const files = photos.map(r => new File([r.blob], r.name, { type: 'image/jpeg' }));
-  if (!navigator.canShare || !navigator.canShare({ files }))
-    return alert('Sharing multiple photos isn’t supported on this browser. Use Download all instead.');
-  try { await navigator.share({ files }); } catch (e) {}   // errors here just mean the share was cancelled
+$('delAll').onclick = async () => {
+  if (confirm(`Delete all ${photos.length} photos from this device? Make sure you’ve shared or downloaded them first.`)) {
+    await tx('readwrite', s => s.clear()); render();
+  }
 };
-
-/* ---------- Scroll buttons: the page scrolls, so make that obvious ---------- */
-$('toPhotos').onclick = () => $('photosBar').scrollIntoView({ behavior: 'smooth' });
-$('toCam').onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
 /* ---------- Start ---------- */
 (async () => {
-  db = await openDB();
-  if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
-  render(); startGPS(); startCam();
+  try { db = await openDB(); } catch (e) { toast('Photos can’t be stored in this browser', true); }
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist();   // ask the browser not to clear our photos
+  if (db) render();
+  startGPS();
 })();
 </script>
 </body>
