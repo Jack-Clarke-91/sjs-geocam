@@ -12,27 +12,29 @@
 <title>GeoCam</title>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 :root{--bg:#f1f4f6;--card:#fff;--ink:#14212b;--mut:#5d6b76;--line:#d9e0e5;--acc:#d9480f;--acc2:#a83a0a;--ok:#1b7a4b;--warn:#b26a00;--bad:#c62828}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 
-/* Dark slate header with a more visible technical grid */
+
+/* Dark slate header with a subtle technical grid */
 header{
   background-color:#343b43;
   background-image:
-    linear-gradient(rgba(190,202,214,.20) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(190,202,214,.20) 1px, transparent 1px),
-    linear-gradient(135deg, transparent 49.5%, rgba(190,202,214,.07) 50%, transparent 50.5%);
+    linear-gradient(rgba(190,202,214,.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(190,202,214,.12) 1px, transparent 1px),
+    linear-gradient(135deg, transparent 49.5%, rgba(190,202,214,.04) 50%, transparent 50.5%);
   background-size:24px 24px, 24px 24px, 48px 48px;
   color:#e8e7e1;
   padding:calc(8px + env(safe-area-inset-top)) 16px 8px;
   border-bottom:1px solid #505963;
 }
 header h1{
-  font-family:"Segoe UI","Aptos","Helvetica Neue",Arial,sans-serif;
-  font-size:20px;
-  font-weight:700;
-  letter-spacing:.4px;
+  font-family:'Share Tech Mono', monospace;
+  font-size:22px;
+  font-weight:400;
+  letter-spacing:.5px;
   color:#e8e7e1;
   max-width:720px;
   margin:0 auto;
