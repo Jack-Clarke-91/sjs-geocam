@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,21 +10,24 @@
 <meta name="theme-color" content="#14212b">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2314212b'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23d9480f'/%3E%3C/svg%3E">
 <title>GeoCam</title>
+
 <style>
 :root{--bg:#f1f4f6;--card:#fff;--ink:#14212b;--mut:#5d6b76;--line:#d9e0e5;--acc:#d9480f;--acc2:#a83a0a;--ok:#1b7a4b;--warn:#b26a00;--bad:#c62828}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+
 header{background:var(--ink);color:#fff;padding:calc(8px + env(safe-area-inset-top)) 16px 8px}
-header h1 {
-  font-family: Consolas, "Lucida Console", monospace;
-  font-size: 19px;
-  font-weight: 700;
-  letter-spacing: 1px;
+header h1{
+  font-family:Consolas,"Lucida Console",monospace;
+  font-size:19px;
+  font-weight:700;
+  letter-spacing:1px;
+  max-width:720px;
+  margin:0 auto;
 }
-header span{font-weight:400;opacity:.7;font-size:14px;margin-left:8px}
 main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
 
-/* Location card */
+/* GPS card */
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
 .status{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--mut)}
 .dot{width:10px;height:10px;border-radius:50%;background:var(--warn);flex:none}
@@ -32,15 +36,17 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 .en{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0 6px}
 .en small{display:block;font-size:12px;color:var(--mut)}
 .en b{font:600 22px ui-monospace,SFMono-Regular,Menlo,monospace}
-.ll{font:13px ui-monospace,Menlo,monospace;color:var(--mut)}
-.note{font-size:12px;color:var(--mut);margin-top:6px}
+.road{display:flex;flex-direction:column;gap:2px;margin-top:8px}
+.road small{font-size:10px;color:var(--mut)}
+.road b{font-size:16px;font-weight:700;overflow-wrap:anywhere}
+.road-credit{font-size:9px;color:var(--mut)}
 
 /* Take photo */
 .take{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:16px 0 6px;padding:20px;font-family:inherit;font-size:21px;font-weight:700;background:var(--acc);color:#fff;border:0;border-radius:14px;box-shadow:0 3px 0 var(--acc2);cursor:pointer}
 .take:active{transform:translateY(2px);box-shadow:0 1px 0 var(--acc2)}
 .hint{margin:0;text-align:center;font-size:13px;color:var(--mut)}
 
-/* Live view (Android only) */
+/* Live camera */
 .live{margin-top:16px}
 .cam{position:relative;background:#000;border-radius:14px;overflow:hidden;height:55vh;width:100%}
 .cam video{width:100%;height:100%;object-fit:contain;display:block}
@@ -67,12 +73,12 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 .del{margin:2px 10px 6px;padding:6px;font-size:13px}
 .empty{border:2px dashed var(--line);border-radius:12px;padding:28px 16px;text-align:center;color:var(--mut)}
 
-/* Toast + full-size viewer */
+/* Toast and full-size viewer */
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:99px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90%;text-align:center}
 #toast.show{opacity:1}
 #view{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:9}
 
-/* Compact first-screen layout on phones, especially Android live-camera devices */
+/* Compact mobile layout */
 @media (max-width:600px){
   main{padding:8px 10px calc(20px + env(safe-area-inset-bottom))}
   .card{padding:7px 10px;border-radius:10px}
@@ -81,16 +87,14 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
   .en{gap:8px;margin:4px 0 2px}
   .en small{font-size:10px}
   .en b{font-size:15px;line-height:1.25}
-  .ll{font-size:10px;line-height:1.3}
-  .note{display:none}
   .live{margin-top:8px}
- .cam{
-  aspect-ratio:auto;
-  height:55vh;
-  max-height:none;
-  min-height:300px;
-  border-radius:10px;
-}
+  .cam{
+    aspect-ratio:auto;
+    height:55vh;
+    max-height:none;
+    min-height:300px;
+    border-radius:10px;
+  }
   .shutter{width:62px;height:62px;border-width:4px;margin:7px auto 2px}
   .live .hint{font-size:11px}
   .take{margin:9px 0 4px;padding:14px;font-size:18px}
@@ -99,45 +103,70 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 #view img{max-width:100%;max-height:100%}
 </style>
 </head>
+
 <body>
-<header><h1>SJS - GeoCam</span></h1></header>
+<header><h1>SJS - GeoCam</h1></header>
 
 <main>
+
+  <!-- GPS information -->
   <section class="card" id="gpsCard" data-state="wait">
-    <div class="status"><span class="dot"></span><span id="gpsStatus">Finding your location…</span></div>
-    <div class="en">
-      <div><small>Easting</small><b id="gpsE">–</b></div>
-      <div><small>Northing</small><b id="gpsN">–</b></div>
+    <div class="status">
+      <span class="dot"></span>
+      <span id="gpsStatus">Finding your location…</span>
     </div>
-    <div class="ll" id="gpsLL"></div>
-    <div class="note">British National Grid. These values are stamped on every photo.</div>
+
+    <div class="road">
+      <small>CURRENT ROAD</small>
+      <b id="roadName">Locating road…</b>
+      <span class="road-credit">Road data © OpenStreetMap contributors</span>
+    </div>
+
+    <div class="en">
+      <div>
+        <small>Easting</small>
+        <b id="gpsE">–</b>
+      </div>
+      <div>
+        <small>Northing</small>
+        <b id="gpsN">–</b>
+      </div>
+    </div>
   </section>
 
-  <!-- Android: live camera view with a round shutter (shown by the script) -->
+  <!-- Android live camera -->
   <section class="live" id="live" hidden>
-    <div class="cam"><video id="video" autoplay playsinline muted></video></div>
+    <div class="cam">
+      <video id="video" autoplay playsinline muted></video>
+    </div>
     <button class="shutter" id="shutter" aria-label="Take photo"></button>
     <p class="hint">Tap the round button to take a photo.</p>
   </section>
 
-  <!-- iPhone: big button that opens the camera app (hidden by the script on Android) -->
+  <!-- iPhone camera fallback -->
   <button class="take" id="take">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 8h3l2-3h6l2 3h3v11H4z"/>
+      <circle cx="12" cy="13" r="3.5"/>
+    </svg>
     Take photo
   </button>
+
   <p class="hint" id="takeHint">Opens your camera. Take the photo, then confirm it (“Use Photo” on iPhone, ✓ on Android).</p>
   <input type="file" id="cam" accept="image/*" capture="environment" hidden>
 
+  <!-- Photo controls -->
   <div class="bar">
     <h2>Photos (<span id="count">0</span>)</h2>
     <div class="tools" id="tools">
-      <button class="btn pri" id="shareAll">Share all</button>
-      <button class="btn" id="dlAll">Download all</button>
+      <button class="btn pri" id="dlAll">Download all</button>
       <button class="btn link" id="delAll">Delete all</button>
     </div>
   </div>
+
   <div class="empty" id="empty">No photos yet. Tap <b>Take photo</b> to get started.</div>
   <div class="grid" id="grid"></div>
+
 </main>
 
 <div id="toast"></div>
@@ -145,25 +174,28 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 
 <script>
 const $ = id => document.getElementById(id);
+
 let db, pos = null, tapPos = null, photos = [], urls = [], stream = null, imgCap = null;
-let shareOffset = 0;
-const SHARE_BATCH_SIZE = 8; // Smaller batches avoid Android/browser share-sheet file-count limits.
-// iPhone/iPad Safari can't take full-quality stills from a web page, so it uses the camera-app button.
-// Android Chrome can (ImageCapture), so it gets the live view with a one-tap shutter.
+
+// Device detection
 const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const LIVE = !IS_IOS && 'ImageCapture' in window;
+
 const pad = n => String(n).padStart(2, '0');
 const toBlob = (c, q) => new Promise(r => c.toBlob(r, 'image/jpeg', q));
 
-/* ---------- Small pop-up message ---------- */
+/* ---------- Notifications ---------- */
 let toastTimer;
+
 function toast(msg, sticky) {
-  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
   clearTimeout(toastTimer);
   if (!sticky) toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-/* ---------- Storage: IndexedDB keeps photos on this device between visits ---------- */
+/* ---------- Storage: IndexedDB ---------- */
 function openDB() {
   return new Promise((res, rej) => {
     const r = indexedDB.open('geocam', 1);
@@ -172,22 +204,23 @@ function openDB() {
     r.onerror = () => rej(r.error);
   });
 }
+
 function tx(mode, fn) {
   return new Promise((res, rej) => {
-    const t = db.transaction('photos', mode), req = fn(t.objectStore('photos'));
+    const t = db.transaction('photos', mode);
+    const req = fn(t.objectStore('photos'));
     t.oncomplete = () => res(req.result);
     t.onerror = () => rej(t.error);
   });
 }
 
-/* ---------- Easting/Northing: WGS84 lat/lon -> British National Grid (OSGB36) ----------
-   Uses Ordnance Survey's 7-parameter Helmert shift + Transverse Mercator formulae.
-   Good to roughly 2-5 m (OS's full OSTN15 grid shift isn't included), which is
-   in line with phone GPS accuracy. Returns null if the point is outside the GB grid. */
+/* ---------- British National Grid conversion ---------- */
+/* WGS84 lat/lon -> OSGB36 using Helmert transformation and Transverse Mercator */
+
 function toBNG(latDeg, lonDeg) {
   const rad = d => d * Math.PI / 180;
 
-  // Step 1: WGS84 lat/lon -> 3D cartesian (metres)
+  // WGS84 to Cartesian coordinates
   const aW = 6378137, bW = 6356752.314245, e2W = 1 - (bW * bW) / (aW * aW);
   const phi = rad(latDeg), lam = rad(lonDeg);
   const nuW = aW / Math.sqrt(1 - e2W * Math.sin(phi) ** 2);
@@ -195,7 +228,7 @@ function toBNG(latDeg, lonDeg) {
   const y1 = nuW * Math.cos(phi) * Math.sin(lam);
   const z1 = nuW * (1 - e2W) * Math.sin(phi);
 
-  // Step 2: Helmert shift WGS84 -> OSGB36
+  // Helmert shift
   const tx = -446.448, ty = 125.157, tz = -542.060;
   const s = 1 + 20.4894e-6;
   const rx = rad(-0.1502 / 3600), ry = rad(-0.2470 / 3600), rz = rad(-0.8421 / 3600);
@@ -203,17 +236,19 @@ function toBNG(latDeg, lonDeg) {
   const y2 = ty + x1 * rz + y1 * s - z1 * rx;
   const z2 = tz - x1 * ry + y1 * rx + z1 * s;
 
-  // Step 3: cartesian -> lat/lon on the Airy 1830 ellipsoid (the one OSGB36 uses)
+  // Convert to Airy 1830 ellipsoid
   const a = 6377563.396, b = 6356256.909, e2 = 1 - (b * b) / (a * a);
   const p = Math.hypot(x2, y2);
   let ph = Math.atan2(z2, p * (1 - e2));
+
   for (let i = 0; i < 10; i++) {
     const nuI = a / Math.sqrt(1 - e2 * Math.sin(ph) ** 2);
     ph = Math.atan2(z2 + e2 * nuI * Math.sin(ph), p);
   }
+
   const la = Math.atan2(y2, x2);
 
-  // Step 4: Transverse Mercator projection onto the National Grid
+  // Transverse Mercator projection
   const F0 = 0.9996012717, ph0 = rad(49), la0 = rad(-2), E0 = 400000, N0 = -100000;
   const n = (a - b) / (a + b);
   const sin = Math.sin(ph), cos = Math.cos(ph), tan = Math.tan(ph);
@@ -221,11 +256,13 @@ function toBNG(latDeg, lonDeg) {
   const rho = a * F0 * (1 - e2) * Math.pow(1 - e2 * sin * sin, -1.5);
   const eta2 = nu / rho - 1;
   const dPh = ph - ph0, sPh = ph + ph0;
+
   const M = b * F0 * (
     (1 + n + 1.25 * n * n + 1.25 * n ** 3) * dPh
     - (3 * n + 3 * n * n + 21 / 8 * n ** 3) * Math.sin(dPh) * Math.cos(sPh)
     + (15 / 8 * n * n + 15 / 8 * n ** 3) * Math.sin(2 * dPh) * Math.cos(2 * sPh)
     - 35 / 24 * n ** 3 * Math.sin(3 * dPh) * Math.cos(3 * sPh));
+
   const dL = la - la0;
   const I = M + N0;
   const II = nu / 2 * sin * cos;
@@ -234,252 +271,479 @@ function toBNG(latDeg, lonDeg) {
   const IV = nu * cos;
   const V = nu / 6 * cos ** 3 * (nu / rho - tan ** 2);
   const VI = nu / 120 * cos ** 5 * (5 - 18 * tan ** 2 + tan ** 4 + 14 * eta2 - 58 * tan ** 2 * eta2);
+
   const north = I + II * dL ** 2 + III * dL ** 4 + IIIA * dL ** 6;
   const east = E0 + IV * dL + V * dL ** 3 + VI * dL ** 5;
 
   if (east < 0 || east > 700000 || north < 0 || north > 1300000) return null;
+
   return { e: east, n: north };
 }
 
-/* ---------- GPS: keep the latest fix and show it in the card ---------- */
+/* ---------- GPS display ---------- */
+
 function setGps(state, status, c) {
-  $('gpsCard').dataset.state = state;          // ok | wait | bad (colours the status dot)
+  $('gpsCard').dataset.state = state;
   $('gpsStatus').textContent = status;
+
   const en = c && toBNG(c.latitude, c.longitude);
+
   $('gpsE').textContent = en ? en.e.toFixed(1) : '–';
   $('gpsN').textContent = en ? en.n.toFixed(1) : '–';
-  $('gpsLL').textContent = c ? `Lat ${c.latitude.toFixed(6)}   Lon ${c.longitude.toFixed(6)}` : '';
 }
+
+/* ---------- Reverse geocoding: GPS -> road name ---------- */
+
+let lastRoadLookup = 0;
+let lastRoadPosition = null;
+let roadRequestActive = false;
+
+async function updateRoadName(lat, lon) {
+  const now = Date.now();
+
+  // Prevent overlapping requests and respect the service's request limit.
+  if (roadRequestActive || now - lastRoadLookup < 1000) return;
+
+  // While stationary, refresh after 30 seconds; while moving, refresh after 50 m.
+  if (lastRoadPosition) {
+    const latMetres = (lat - lastRoadPosition.lat) * 111320;
+    const lonMetres = (lon - lastRoadPosition.lon) * 111320 * Math.cos(lat * Math.PI / 180);
+    const distance = Math.hypot(latMetres, lonMetres);
+
+    if (distance < 50 && now - lastRoadLookup < 30000) return;
+  }
+
+  lastRoadLookup = now;
+  lastRoadPosition = { lat, lon };
+  roadRequestActive = true;
+
+  try {
+    // Ask OpenStreetMap for the nearest mapped address.
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&zoom=18&addressdetails=1`;
+
+    const response = await fetch(url, {
+      headers: { Accept: 'application/json' }
+    });
+
+    if (!response.ok) throw new Error(`Road lookup returned ${response.status}`);
+
+    const data = await response.json();
+    const address = data.address || {};
+
+    // Find the most useful road name returned by OpenStreetMap.
+    const road = address.road ||
+      address.pedestrian ||
+      address.residential ||
+      address.highway ||
+      address.motorway ||
+      address.trunk ||
+      address.primary ||
+      address.secondary ||
+      address.tertiary ||
+      address.path;
+
+    $('roadName').textContent = road || 'Road name unavailable';
+
+  } catch (error) {
+    $('roadName').textContent = 'Road lookup unavailable';
+
+    // Allow a fresh attempt if the request failed.
+    lastRoadLookup = 0;
+    lastRoadPosition = null;
+
+  } finally {
+    roadRequestActive = false;
+  }
+}
+
+/* ---------- Start GPS tracking ---------- */
+
 function startGPS() {
-  if (!navigator.geolocation) return setGps('bad', 'GPS isn’t available on this device');
+  if (!navigator.geolocation) {
+    return setGps('bad', 'GPS isn’t available on this device');
+  }
+
   navigator.geolocation.watchPosition(p => {
     pos = p;
+
+    // Update the road name using the latest GPS coordinates.
+    updateRoadName(p.coords.latitude, p.coords.longitude);
+
     const a = Math.round(p.coords.accuracy);
-    setGps(a <= 20 ? 'ok' : 'wait', a <= 20 ? `GPS ready · accurate to ±${a} m` : `Weak signal · ±${a} m. Move to open sky.`, p.coords);
+
+    setGps(
+      a <= 20 ? 'ok' : 'wait',
+      a <= 20
+        ? `GPS ready · accurate to ±${a} m`
+        : `Weak signal · ±${a} m. Move to open sky.`,
+      p.coords
+    );
+
   }, e => {
-    if (e.code === 1) setGps('bad', 'Location is blocked. Allow it in your browser settings, then reload.');
-    else if (!pos) setGps('wait', 'Still looking for a GPS signal…');
-  }, { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 });
+    if (e.code === 1) {
+      setGps('bad', 'Location is blocked. Allow it in your browser settings, then reload.');
+    } else if (!pos) {
+      setGps('wait', 'Still looking for a GPS signal…');
+    }
+
+  }, {
+    enableHighAccuracy: true,
+    maximumAge: 2000,
+    timeout: 20000
+  });
 }
 
-/* ---------- Take a photo with the phone's own camera app ---------- */
-// Lock in the GPS fix at the moment of the tap (the page is in the background while the camera is open)
-$('take').onclick = () => { tapPos = pos; $('cam').click(); };
-$('cam').onchange = async e => {
-  const f = e.target.files[0]; if (!f) return;
-  toast('Saving photo…', true);
-  try {
-    const img = new Image(), u = URL.createObjectURL(f);
-    img.src = u; await img.decode();
-    const rec = await save(img, img.naturalWidth, img.naturalHeight, tapPos || pos);
-    URL.revokeObjectURL(u);
-    toast(rec.lat == null ? 'Saved, but there was no GPS fix' : 'Photo saved ✓');
-  } catch (err) { toast('Couldn’t save that photo'); }
-  tapPos = null; e.target.value = '';
+/* ---------- Camera-app photo capture ---------- */
+
+$('take').onclick = () => {
+  tapPos = pos;
+  $('cam').click();
 };
 
-/* ---------- Android: live view + one-tap full-resolution photo ---------- */
-// Show the live view (Android) or the camera-app button (iPhone, or if the live camera can't start)
+$('cam').onchange = async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+
+  toast('Saving photo…', true);
+
+  try {
+    const img = new Image();
+    const u = URL.createObjectURL(f);
+
+    img.src = u;
+    await img.decode();
+
+    const rec = await save(img, img.naturalWidth, img.naturalHeight, tapPos || pos);
+
+    URL.revokeObjectURL(u);
+
+    toast(rec.lat == null ? 'Saved, but there was no GPS fix' : 'Photo saved ✓');
+
+  } catch (err) {
+    toast('Couldn’t save that photo');
+  }
+
+  tapPos = null;
+  e.target.value = '';
+};
+
+/* ---------- Android live camera ---------- */
+
 function showLive(on) {
   $('live').hidden = !on;
   $('take').style.display = on ? 'none' : '';
   $('takeHint').style.display = on ? 'none' : '';
 }
+
 async function startCam() {
   try {
     stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 3840 }, height: { ideal: 2160 } }, audio: false });
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 3840 },
+        height: { ideal: 2160 }
+      },
+      audio: false
+    });
+
     $('video').srcObject = stream;
     await $('video').play();
+
     imgCap = new ImageCapture(stream.getVideoTracks()[0]);
+
     showLive(true);
+
   } catch (e) {
-    showLive(false);   // camera blocked or unavailable: fall back to the camera-app button
+    showLive(false);
     toast('Live camera unavailable, so the camera app will be used instead.');
   }
 }
-// Restart the camera if the phone paused it while the app was in the background
+
+// Restart camera if Android pauses it in the background.
 document.addEventListener('visibilitychange', () => {
   const t = stream && stream.getVideoTracks()[0];
-  if (!document.hidden && LIVE && !$('live').hidden && (!t || t.readyState !== 'live')) startCam();
+
+  if (!document.hidden && LIVE && !$('live').hidden && (!t || t.readyState !== 'live')) {
+    startCam();
+  }
 });
 
-// Ask the camera for a real full-resolution still (capped at ~16 MP), which is much sharper than a video frame
+/* ---------- Capture full-resolution photo ---------- */
+
 async function grabStill() {
   try {
     const caps = await imgCap.getPhotoCapabilities();
     const opts = {};
+
     if (caps.imageWidth && caps.imageHeight) {
-      const w = caps.imageWidth.max, h = caps.imageHeight.max, k = Math.min(1, Math.sqrt(16e6 / (w * h)));
-      opts.imageWidth = Math.round(w * k); opts.imageHeight = Math.round(h * k);
+      const w = caps.imageWidth.max;
+      const h = caps.imageHeight.max;
+      const k = Math.min(1, Math.sqrt(16e6 / (w * h)));
+
+      opts.imageWidth = Math.round(w * k);
+      opts.imageHeight = Math.round(h * k);
     }
+
     const bmp = await createImageBitmap(await imgCap.takePhoto(opts));
+
     return { src: bmp, w: bmp.width, h: bmp.height };
+
   } catch (e) {
-    const v = $('video');   // fallback: a frame from the live video (lower resolution)
+    const v = $('video');
+
+    // Use a video frame if full-resolution capture fails.
     return { src: v, w: v.videoWidth, h: v.videoHeight };
   }
 }
+
 $('shutter').onclick = async () => {
-  const v = $('video'); if (!v.videoWidth) return;
-  const btn = $('shutter'); btn.disabled = true;
-  v.classList.remove('shot'); void v.offsetWidth; v.classList.add('shot');   // quick flash so you know it fired
-  const p = pos;                                                             // lock in the GPS fix at the moment of the tap
+  const v = $('video');
+
+  if (!v.videoWidth) return;
+
+  const btn = $('shutter');
+  btn.disabled = true;
+
+  v.classList.remove('shot');
+  void v.offsetWidth;
+  v.classList.add('shot');
+
+  // Lock GPS position at the moment of capture.
+  const p = pos;
+
   try {
     const still = await grabStill();
+
     const rec = await save(still.src, still.w, still.h, p);
+
     toast(rec.lat == null ? 'Saved, but there was no GPS fix' : 'Photo saved ✓');
-  } catch (e) { toast('Couldn’t save that photo'); }
+
+  } catch (e) {
+    toast('Couldn’t save that photo');
+  }
+
   btn.disabled = false;
 };
 
-/* ---------- Stamp the GPS text onto the photo and save it ---------- */
+/* ---------- Stamp GPS information onto photos ---------- */
+
 async function save(source, w, h, p) {
-  const now = new Date(), c = p && p.coords;
-  const when = now.toLocaleString([], { dateStyle: 'medium', timeStyle: 'medium' });
+  const now = new Date();
+  const c = p && p.coords;
+
+  const when = now.toLocaleString([], {
+    dateStyle: 'medium',
+    timeStyle: 'medium'
+  });
+
   const en = c ? toBNG(c.latitude, c.longitude) : null;
-  const enText = en ? `E ${en.e.toFixed(1)}   N ${en.n.toFixed(1)}   (BNG)` : 'E/N unavailable (outside GB grid)';
+
+  const enText = en
+    ? `E ${en.e.toFixed(1)}   N ${en.n.toFixed(1)}   (BNG)`
+    : 'E/N unavailable (outside GB grid)';
+
   const lines = c
-    ? [`Lat ${c.latitude.toFixed(6)}   Lon ${c.longitude.toFixed(6)}`, enText, `±${Math.round(c.accuracy)} m   ${when}`]
+    ? [
+        `Lat ${c.latitude.toFixed(6)}   Lon ${c.longitude.toFixed(6)}`,
+        enText,
+        `±${Math.round(c.accuracy)} m   ${when}`
+      ]
     : ['No GPS fix', when];
 
-  // Cap at ~16 megapixels so huge photos can't exceed browser limits (normal 12 MP photos are untouched)
+  // Limit photos to approximately 16 megapixels.
   const k = Math.min(1, Math.sqrt(16e6 / (w * h)));
-  w = Math.round(w * k); h = Math.round(h * k);
+
+  w = Math.round(w * k);
+  h = Math.round(h * k);
+
   const cv = document.createElement('canvas');
-  cv.width = w; cv.height = h;
+
+  cv.width = w;
+  cv.height = h;
+
   const x = cv.getContext('2d');
+
   x.drawImage(source, 0, 0, w, h);
 
-  // Dark text bar along the bottom, sized relative to the photo
+  // Dark information bar along the bottom of the photo.
   const fs = Math.max(16, Math.round(Math.min(w, h) * 0.03));
   const barH = Math.round(lines.length * fs * 1.4 + fs);
+
   x.fillStyle = 'rgba(0,0,0,.65)';
   x.fillRect(0, h - barH, w, barH);
+
   x.fillStyle = '#fff';
   x.textBaseline = 'top';
   x.font = `bold ${fs}px ui-monospace, Menlo, Consolas, monospace`;
-  lines.forEach((t, i) => x.fillText(t, fs * 0.6, h - barH + fs * 0.5 + i * fs * 1.4));
 
-  // Small thumbnail for the grid
+  lines.forEach((t, i) => {
+    x.fillText(t, fs * 0.6, h - barH + fs * 0.5 + i * fs * 1.4);
+  });
+
+  // Create a smaller thumbnail for the photo grid.
   const th = document.createElement('canvas');
-  th.width = 360; th.height = Math.round(360 * h / w);
+
+  th.width = 360;
+  th.height = Math.round(360 * h / w);
+
   th.getContext('2d').drawImage(cv, 0, 0, th.width, th.height);
 
   const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+
   const rec = {
-    blob: await toBlob(cv, 0.95),            // high JPEG quality
+    blob: await toBlob(cv, 0.95),
     thumb: await toBlob(th, 0.8),
     w, h,
-    lat: c ? c.latitude : null, lon: c ? c.longitude : null, acc: c ? c.accuracy : null,
-    e: en ? en.e : null, n: en ? en.n : null,
+    lat: c ? c.latitude : null,
+    lon: c ? c.longitude : null,
+    acc: c ? c.accuracy : null,
+    e: en ? en.e : null,
+    n: en ? en.n : null,
     time: now.getTime(),
     name: `geocam_${stamp}${c ? `_${c.latitude.toFixed(5)}_${c.longitude.toFixed(5)}` : '_nogps'}.jpg`
   };
+
   await tx('readwrite', s => s.add(rec));
+
   render();
+
   return rec;
 }
 
-/* ---------- Photo grid: share, download, delete ---------- */
-const asFile = r => new File([r.blob], r.name, { type: 'image/jpeg' });
-async function share(files) {
-  try {
-    await navigator.share({ files });
-    return true;
-  } catch (e) {
-    if (e.name !== 'AbortError') toast('The share sheet could not share this batch. Try a smaller batch or Download all.');
-    return false;
-  }
-}
+/* ---------- Photo downloads and deletion ---------- */
+
 function download(r) {
-  const u = URL.createObjectURL(r.blob), a = document.createElement('a');
-  a.href = u; a.download = r.name;
-  document.body.appendChild(a); a.click(); a.remove();
+  const u = URL.createObjectURL(r.blob);
+  const a = document.createElement('a');
+
+  a.href = u;
+  a.download = r.name;
+
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
   setTimeout(() => URL.revokeObjectURL(u), 10000);
 }
 
 async function render() {
-  photos = (await tx('readonly', s => s.getAll())).reverse();    // newest first
-  if (shareOffset >= photos.length) shareOffset = 0;
-  urls.forEach(URL.revokeObjectURL); urls = [];
+  photos = (await tx('readonly', s => s.getAll())).reverse();
+
+  urls.forEach(URL.revokeObjectURL);
+  urls = [];
+
   $('count').textContent = photos.length;
   $('tools').style.display = photos.length ? '' : 'none';
   $('empty').style.display = photos.length ? 'none' : '';
-  $('shareAll').style.display = navigator.canShare ? '' : 'none';   // hide where file sharing isn't supported
-  const remaining = photos.length - shareOffset;
-  $('shareAll').textContent = shareOffset === 0
-    ? `Share all (${Math.min(SHARE_BATCH_SIZE, remaining)} at a time)`
-    : `Share next batch (${remaining} left)`;
-  const grid = $('grid'); grid.innerHTML = '';
+
+  const grid = $('grid');
+  grid.innerHTML = '';
 
   for (const r of photos) {
-    const file = asFile(r), u = URL.createObjectURL(r.thumb); urls.push(u);
-    const place = r.e != null ? `E ${r.e.toFixed(1)} · N ${r.n.toFixed(1)}`
-                : r.lat != null ? `${r.lat.toFixed(5)}, ${r.lon.toFixed(5)}` : 'No GPS fix';
-    const t = document.createElement('div'); t.className = 'tile';
-    t.innerHTML = `<img src="${u}" alt="Photo">
-      <div class="meta"><b>${new Date(r.time).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</b>
-        <span>${place}</span><span>${r.w ? `${r.w}×${r.h} · ${(r.blob.size / 1048576).toFixed(1)} MB` : ''}</span></div>
-      <div class="acts"></div><button class="btn link del">Delete</button>`;
+    const u = URL.createObjectURL(r.thumb);
+    urls.push(u);
 
-    // Tap the picture to see it full size
+    const place = r.e != null
+      ? `E ${r.e.toFixed(1)} · N ${r.n.toFixed(1)}`
+      : r.lat != null
+        ? `${r.lat.toFixed(5)}, ${r.lon.toFixed(5)}`
+        : 'No GPS fix';
+
+    const t = document.createElement('div');
+    t.className = 'tile';
+
+    t.innerHTML = `
+      <img src="${u}" alt="Photo">
+      <div class="meta">
+        <b>${new Date(r.time).toLocaleString([], {
+          dateStyle: 'short',
+          timeStyle: 'short'
+        })}</b>
+        <span>${place}</span>
+        <span>${r.w ? `${r.w}×${r.h} · ${(r.blob.size / 1048576).toFixed(1)} MB` : ''}</span>
+      </div>
+      <div class="acts"></div>
+      <button class="btn link del">Delete</button>
+    `;
+
+    // Open full-size photo when tapped.
     t.querySelector('img').onclick = () => {
-      const v = $('view'), vu = URL.createObjectURL(r.blob);
-      v.firstElementChild.src = vu; v.style.display = 'flex';
-      v.onclick = () => { v.style.display = 'none'; URL.revokeObjectURL(vu); };
+      const v = $('view');
+      const vu = URL.createObjectURL(r.blob);
+
+      v.firstElementChild.src = vu;
+      v.style.display = 'flex';
+
+      v.onclick = () => {
+        v.style.display = 'none';
+        URL.revokeObjectURL(vu);
+      };
     };
+
     const acts = t.querySelector('.acts');
-    const add = (label, cls, fn) => { const b = document.createElement('button'); b.className = 'btn ' + cls; b.textContent = label; b.onclick = fn; acts.appendChild(b); };
-    if (navigator.canShare && navigator.canShare({ files: [file] })) add('Share', 'pri', () => share([file]));
-    add('Download', '', () => download(r));
-    t.querySelector('.del').onclick = async () => {
-      if (confirm('Delete this photo?')) { await tx('readwrite', s => s.delete(r.id)); render(); }
+
+    const add = (label, cls, fn) => {
+      const b = document.createElement('button');
+
+      b.className = 'btn ' + cls;
+      b.textContent = label;
+      b.onclick = fn;
+
+      acts.appendChild(b);
     };
+
+    add('Download', '', () => download(r));
+
+    t.querySelector('.del').onclick = async () => {
+      if (confirm('Delete this photo?')) {
+        await tx('readwrite', s => s.delete(r.id));
+        render();
+      }
+    };
+
     grid.appendChild(t);
   }
 }
 
-// Share in small batches: Android and individual share targets often impose file-count or total-size limits.
-$('shareAll').onclick = async () => {
-  if (!navigator.canShare || !navigator.share) return toast('File sharing is not supported in this browser. Try Download all.');
-  const batch = photos.slice(shareOffset, shareOffset + SHARE_BATCH_SIZE).map(asFile);
-  if (!batch.length) {
-    shareOffset = 0;
-    return render();
-  }
-  // Check the actual batch before opening the share sheet.
-  if (!navigator.canShare({ files: batch })) {
-    return toast('This batch is still too large for your phone to share. Use Download all, or share photos individually.');
-  }
-  const shared = await share(batch);
-  if (shared) {
-    shareOffset += batch.length;
-    if (shareOffset >= photos.length) {
-      shareOffset = 0;
-      toast('All photos have been sent to the share sheet.');
-    } else {
-      toast(`${shareOffset} of ${photos.length} prepared. Tap Share next batch to continue.`);
-    }
-    render();
-  }
-};
+/* ---------- Download all photos ---------- */
+
 $('dlAll').onclick = async () => {
-  for (const r of photos) { download(r); await new Promise(res => setTimeout(res, 500)); }
-};
-$('delAll').onclick = async () => {
-  if (confirm(`Delete all ${photos.length} photos from this device? Make sure you’ve shared or downloaded them first.`)) {
-    await tx('readwrite', s => s.clear()); render();
+  for (const r of photos) {
+    download(r);
+    await new Promise(res => setTimeout(res, 500));
   }
 };
 
-/* ---------- Start ---------- */
+/* ---------- Delete all photos ---------- */
+
+$('delAll').onclick = async () => {
+  if (confirm(`Delete all ${photos.length} photos from this device? Make sure you’ve downloaded them first.`)) {
+    await tx('readwrite', s => s.clear());
+    render();
+  }
+};
+
+/* ---------- Start application ---------- */
+
 (async () => {
-  try { db = await openDB(); } catch (e) { toast('Photos can’t be stored in this browser', true); }
-  if (navigator.storage && navigator.storage.persist) navigator.storage.persist();   // ask the browser not to clear our photos
+  try {
+    db = await openDB();
+  } catch (e) {
+    toast('Photos can’t be stored in this browser', true);
+  }
+
+  if (navigator.storage && navigator.storage.persist) {
+    navigator.storage.persist();
+  }
+
   if (db) render();
+
   startGPS();
-  if (LIVE) { showLive(true); startCam(); }   // Android: live view. iPhone: the camera-app button stays.
+
+  if (LIVE) {
+    showLive(true);
+    startCam();
+  }
 })();
 </script>
 </body>
