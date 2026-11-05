@@ -16,7 +16,18 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 
-header{background:var(--ink);color:#fff;padding:calc(8px + env(safe-area-inset-top)) 16px 8px}
+/* Dark slate header with a subtle technical blueprint pattern */
+header{
+  background-color:#343b43;
+  background-image:
+    linear-gradient(rgba(255,255,255,.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.055) 1px, transparent 1px),
+    linear-gradient(135deg, transparent 49.7%, rgba(255,255,255,.025) 50%, transparent 50.3%);
+  background-size:24px 24px, 24px 24px, 48px 48px;
+  color:#fff;
+  padding:calc(8px + env(safe-area-inset-top)) 16px 8px;
+  border-bottom:1px solid #505963;
+}
 header h1{
   font-family:"Segoe UI","Aptos","Helvetica Neue",Arial,sans-serif;
   font-size:20px;
@@ -27,7 +38,7 @@ header h1{
 }
 main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
 
-/* GPS information card */
+/* GPS card */
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
 .card-layout{display:grid;grid-template-columns:56% 44%;align-items:center}
 .gps-info{min-width:0;padding-right:12px}
@@ -35,16 +46,12 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 .dot{width:10px;height:10px;border-radius:50%;background:var(--warn);flex:none}
 [data-state=ok] .dot{background:var(--ok)}
 [data-state=bad] .dot{background:var(--bad)}
-
 .en{display:grid;grid-template-columns:max-content max-content;column-gap:16px;margin:7px 0 1px}
 .en small{display:block;font-size:11px;color:var(--mut)}
 .en b{font:600 14px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.35px}
-
 .road{display:flex;flex-direction:column;gap:2px;margin-top:6px}
 .road small{font-size:10px;color:var(--mut);letter-spacing:.25px}
 .road b{font-size:15px;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
-
-/* Weather forecast in a 2 x 2 grid */
 .weather-panel{min-width:0;border-left:1px solid var(--line);padding-left:10px}
 .weather-title{font-size:10px;font-weight:700;letter-spacing:.35px;color:var(--mut);margin:0 0 6px}
 .weather-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 5px}
@@ -52,10 +59,11 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 .weather-icon{font-size:19px;line-height:1;text-align:center}
 .weather-time{font-size:11px;color:var(--ink);font-weight:600;white-space:nowrap}
 .weather-rain{display:block;font-size:9px;color:var(--mut);line-height:1.2}
+.weather-temp{display:none}
 .weather-message{font-size:10px;color:var(--mut);line-height:1.3}
 .map-credit{margin:18px 0 0;text-align:center;font-size:10px;color:var(--mut)}
 
-/* Take photo button */
+/* Take photo */
 .take{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:16px 0 6px;padding:20px;font-family:inherit;font-size:21px;font-weight:700;background:var(--acc);color:#fff;border:0;border-radius:14px;box-shadow:0 3px 0 var(--acc2);cursor:pointer}
 .take:active{transform:translateY(2px);box-shadow:0 1px 0 var(--acc2)}
 .hint{margin:0;text-align:center;font-size:13px;color:var(--mut)}
@@ -70,7 +78,7 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 .shutter:active{transform:scale(.94)}
 .shutter:disabled{opacity:.5}
 
-/* Saved photos */
+/* Photos */
 .bar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:26px 0 12px}
 .bar h2{margin:0;font-size:18px}
 .tools{display:flex;gap:8px;flex-wrap:wrap}
@@ -87,12 +95,12 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 .del{margin:2px 10px 6px;padding:6px;font-size:13px}
 .empty{border:2px dashed var(--line);border-radius:12px;padding:28px 16px;text-align:center;color:var(--mut)}
 
-/* Toast and full-size photo viewer */
+/* Toast and full-size viewer */
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:99px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90%;text-align:center}
 #toast.show{opacity:1}
 #view{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:9}
 
-/* Adjust layout for phones */
+/* Compact mobile layout */
 @media (max-width:600px){
   main{padding:8px 10px calc(20px + env(safe-area-inset-bottom))}
   .card{padding:8px;border-radius:10px}
@@ -180,147 +188,171 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
     <p class="hint">Tap the round button to take a photo.</p>
   </section>
 
-  <!-- Take photo fallback -->
-  <section id="fallback">
-    <label class="take" for="cameraInput">📷 Take photo</label>
-    <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden>
-    <p class="hint">Use your phone camera to take a geotagged photo.</p>
-  </section>
+  <!-- iPhone camera fallback -->
+  <button class="take" id="take">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 8h3l2-3h6l2 3h3v11H4z"/>
+      <circle cx="12" cy="13" r="3.5"/>
+    </svg>
+    Take photo
+  </button>
 
-  <!-- Saved photos -->
-  <section>
-    <div class="bar">
-      <h2>Saved photos</h2>
-      <div class="tools">
-        <button class="btn pri" id="downloadAll">Download all</button>
-        <button class="btn" id="clearAll">Clear all</button>
-      </div>
+  <p class="hint" id="takeHint">Opens your camera. Take the photo, then confirm it (“Use Photo” on iPhone, ✓ on Android).</p>
+  <input type="file" id="cam" accept="image/*" capture="environment" hidden>
+
+  <!-- Photo controls -->
+  <div class="bar">
+    <h2>Photos (<span id="count">0</span>)</h2>
+    <div class="tools" id="tools">
+      <button class="btn pri" id="dlAll">Download all</button>
+      <button class="btn link" id="delAll">Delete all</button>
     </div>
-    <div class="grid" id="photoGrid"></div>
-    <div class="empty" id="emptyState">No photos saved yet.</div>
-  </section>
+  </div>
+
+  <div class="empty" id="empty">No photos yet. Tap <b>Take photo</b> to get started.</div>
+  <div class="grid" id="grid"></div>
 
   <p class="map-credit">Map data © OpenStreetMap contributors · Weather data © Open-Meteo</p>
 
 </main>
 
 <div id="toast"></div>
-<div id="view"></div>
+<div id="view"><img alt=""></div>
 
 <script>
-// ---------- Short helper functions ----------
-
 const $ = id => document.getElementById(id);
 
-function showToast(message) {
-  const toast = $('toast');
-  toast.textContent = message;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 2500);
+let db, pos = null, tapPos = null, photos = [], urls = [], stream = null, imgCap = null;
+
+// Device detection
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const LIVE = !IS_IOS && 'ImageCapture' in window;
+
+const pad = n => String(n).padStart(2, '0');
+const toBlob = (c, q) => new Promise(r => c.toBlob(r, 'image/jpeg', q));
+
+/* ---------- Notifications ---------- */
+let toastTimer;
+
+function toast(msg, sticky) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  if (!sticky) toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// ---------- British National Grid conversion ----------
+/* ---------- Storage: IndexedDB ---------- */
+function openDB() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('geocam', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('photos', { keyPath: 'id', autoIncrement: true });
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
 
-// Convert latitude and longitude into British National Grid coordinates.
-function toBritishNationalGrid(lat, lon) {
-  const a = 6377563.396;
-  const b = 6356256.909;
-  const F0 = 0.9996012717;
-  const lat0 = 49 * Math.PI / 180;
-  const lon0 = -2 * Math.PI / 180;
-  const N0 = -100000;
-  const E0 = 400000;
-  const e2 = 1 - (b * b) / (a * a);
+function tx(mode, fn) {
+  return new Promise((res, rej) => {
+    const t = db.transaction('photos', mode);
+    const req = fn(t.objectStore('photos'));
+    t.oncomplete = () => res(req.result);
+    t.onerror = () => rej(t.error);
+  });
+}
+
+/* ---------- British National Grid conversion ---------- */
+/* WGS84 lat/lon -> OSGB36 using Helmert transformation and Transverse Mercator */
+
+function toBNG(latDeg, lonDeg) {
+  const rad = d => d * Math.PI / 180;
+
+  // WGS84 to Cartesian coordinates
+  const aW = 6378137, bW = 6356752.314245, e2W = 1 - (bW * bW) / (aW * aW);
+  const phi = rad(latDeg), lam = rad(lonDeg);
+  const nuW = aW / Math.sqrt(1 - e2W * Math.sin(phi) ** 2);
+  const x1 = nuW * Math.cos(phi) * Math.cos(lam);
+  const y1 = nuW * Math.cos(phi) * Math.sin(lam);
+  const z1 = nuW * (1 - e2W) * Math.sin(phi);
+
+  // Helmert shift
+  const tx = -446.448, ty = 125.157, tz = -542.060;
+  const s = 1 + 20.4894e-6;
+  const rx = rad(-0.1502 / 3600), ry = rad(-0.2470 / 3600), rz = rad(-0.8421 / 3600);
+  const x2 = tx + x1 * s - y1 * rz + z1 * ry;
+  const y2 = ty + x1 * rz + y1 * s - z1 * rx;
+  const z2 = tz - x1 * ry + y1 * rx + z1 * s;
+
+  // Convert to Airy 1830 ellipsoid
+  const a = 6377563.396, b = 6356256.909, e2 = 1 - (b * b) / (a * a);
+  const p = Math.hypot(x2, y2);
+  let ph = Math.atan2(z2, p * (1 - e2));
+
+  for (let i = 0; i < 10; i++) {
+    const nuI = a / Math.sqrt(1 - e2 * Math.sin(ph) ** 2);
+    ph = Math.atan2(z2 + e2 * nuI * Math.sin(ph), p);
+  }
+
+  const la = Math.atan2(y2, x2);
+
+  // Transverse Mercator projection
+  const F0 = 0.9996012717, ph0 = rad(49), la0 = rad(-2), E0 = 400000, N0 = -100000;
   const n = (a - b) / (a + b);
-
-  const phi = lat * Math.PI / 180;
-  const lambda = lon * Math.PI / 180;
-  const sinPhi = Math.sin(phi);
-  const cosPhi = Math.cos(phi);
-  const tanPhi = Math.tan(phi);
-
-  const nu = a * F0 / Math.sqrt(1 - e2 * sinPhi * sinPhi);
-  const rho = a * F0 * (1 - e2) / Math.pow(1 - e2 * sinPhi * sinPhi, 1.5);
+  const sin = Math.sin(ph), cos = Math.cos(ph), tan = Math.tan(ph);
+  const nu = a * F0 / Math.sqrt(1 - e2 * sin * sin);
+  const rho = a * F0 * (1 - e2) * Math.pow(1 - e2 * sin * sin, -1.5);
   const eta2 = nu / rho - 1;
+  const dPh = ph - ph0, sPh = ph + ph0;
 
-  const Ma = (1 + n + 5 / 4 * n * n + 5 / 4 * n * n * n) * (phi - lat0);
-  const Mb = (3 * n + 3 * n * n + 21 / 8 * n * n * n) * Math.sin(phi - lat0) * Math.cos(phi + lat0);
-  const Mc = (15 / 8 * n * n + 15 / 8 * n * n * n) * Math.sin(2 * (phi - lat0)) * Math.cos(2 * (phi + lat0));
-  const Md = 35 / 24 * n * n * n * Math.sin(3 * (phi - lat0)) * Math.cos(3 * (phi + lat0));
-  const M = b * F0 * (Ma - Mb + Mc - Md);
+  const M = b * F0 * (
+    (1 + n + 1.25 * n * n + 1.25 * n ** 3) * dPh
+    - (3 * n + 3 * n * n + 21 / 8 * n ** 3) * Math.sin(dPh) * Math.cos(sPh)
+    + (15 / 8 * n * n + 15 / 8 * n ** 3) * Math.sin(2 * dPh) * Math.cos(2 * sPh)
+    - 35 / 24 * n ** 3 * Math.sin(3 * dPh) * Math.cos(3 * sPh));
 
+  const dL = la - la0;
   const I = M + N0;
-  const II = nu / 2 * sinPhi * cosPhi;
-  const III = nu / 24 * sinPhi * Math.pow(cosPhi, 3) * (5 - tanPhi * tanPhi + 9 * eta2);
-  const IIIA = nu / 720 * sinPhi * Math.pow(cosPhi, 5) * (61 - 58 * tanPhi * tanPhi + Math.pow(tanPhi, 4));
-  const IV = nu * cosPhi;
-  const V = nu / 6 * Math.pow(cosPhi, 3) * (nu / rho - tanPhi * tanPhi);
-  const VI = nu / 120 * Math.pow(cosPhi, 5) * (5 - 18 * tanPhi * tanPhi + Math.pow(tanPhi, 4) + 14 * eta2 - 58 * tanPhi * tanPhi * eta2);
+  const II = nu / 2 * sin * cos;
+  const III = nu / 24 * sin * cos ** 3 * (5 - tan ** 2 + 9 * eta2);
+  const IIIA = nu / 720 * sin * cos ** 5 * (61 - 58 * tan ** 2 + tan ** 4);
+  const IV = nu * cos;
+  const V = nu / 6 * cos ** 3 * (nu / rho - tan ** 2);
+  const VI = nu / 120 * cos ** 5 * (5 - 18 * tan ** 2 + tan ** 4 + 14 * eta2 - 58 * tan ** 2 * eta2);
 
-  const northing = I + II * Math.pow(lambda - lon0, 2) + III * Math.pow(lambda - lon0, 4) + IIIA * Math.pow(lambda - lon0, 6);
-  const easting = E0 + IV * (lambda - lon0) + V * Math.pow(lambda - lon0, 3) + VI * Math.pow(lambda - lon0, 5);
+  const north = I + II * dL ** 2 + III * dL ** 4 + IIIA * dL ** 6;
+  const east = E0 + IV * dL + V * dL ** 3 + VI * dL ** 5;
 
-  return {
-    easting: Math.round(easting),
-    northing: Math.round(northing)
-  };
+  if (east < 0 || east > 700000 || north < 0 || north > 1300000) return null;
+
+  return { e: east, n: north };
 }
 
-// ---------- GPS position ----------
+/* ---------- GPS display ---------- */
 
-let currentPosition = null;
-let watchId = null;
+function setGps(state, status, c) {
+  $('gpsCard').dataset.state = state;
+  $('gpsStatus').textContent = status;
 
-function updatePosition(position) {
-  const lat = position.coords.latitude;
-  const lon = position.coords.longitude;
+  const en = c && toBNG(c.latitude, c.longitude);
 
-  currentPosition = { lat, lon };
-
-  const grid = toBritishNationalGrid(lat, lon);
-
-  $('gpsE').textContent = grid.easting;
-  $('gpsN').textContent = grid.northing;
-
-  $('gpsStatus').textContent = 'GPS location acquired';
-  $('gpsCard').dataset.state = 'ok';
-
-  // Update the road name and local weather using the latest GPS coordinates.
-  updateRoadName(lat, lon);
-  updateWeather(lat, lon);
+  // Display coordinates to two decimal places.
+  $('gpsE').textContent = en ? en.e.toFixed(2) : '–';
+  $('gpsN').textContent = en ? en.n.toFixed(2) : '–';
 }
 
-function gpsError(error) {
-  $('gpsStatus').textContent = 'GPS unavailable';
-  $('gpsCard').dataset.state = 'bad';
-}
-
-if ('geolocation' in navigator) {
-  watchId = navigator.geolocation.watchPosition(
-    updatePosition,
-    gpsError,
-    {
-      enableHighAccuracy: true,
-      maximumAge: 5000,
-      timeout: 15000
-    }
-  );
-} else {
-  gpsError();
-}
-
-// ---------- Approximate road lookup ----------
+/* ---------- Reverse geocoding: GPS -> road name ---------- */
 
 let lastRoadLookup = 0;
 let lastRoadPosition = null;
 let roadRequestActive = false;
 
-// Look up the nearest mapped road using OpenStreetMap.
 async function updateRoadName(lat, lon) {
   const now = Date.now();
 
-  if (roadRequestActive) return;
+  // Prevent overlapping requests and respect the service's request limit.
+  if (roadRequestActive || now - lastRoadLookup < 1000) return;
 
+  // While stationary, refresh after 30 seconds; while moving, refresh after 50 m.
   if (lastRoadPosition) {
     const latMetres = (lat - lastRoadPosition.lat) * 111320;
     const lonMetres = (lon - lastRoadPosition.lon) * 111320 * Math.cos(lat * Math.PI / 180);
@@ -329,42 +361,50 @@ async function updateRoadName(lat, lon) {
     if (distance < 50 && now - lastRoadLookup < 30000) return;
   }
 
-  // Avoid making repeated requests to the map service.
-  if (now - lastRoadLookup < 1000) return;
-
   lastRoadLookup = now;
   lastRoadPosition = { lat, lon };
   roadRequestActive = true;
 
   try {
+    // Ask OpenStreetMap for the nearest mapped address.
     const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&zoom=18&addressdetails=1`;
-    const response = await fetch(url);
 
-    if (!response.ok) throw new Error('Road lookup failed');
+    const response = await fetch(url, {
+      headers: { Accept: 'application/json' }
+    });
+
+    if (!response.ok) throw new Error(`Road lookup returned ${response.status}`);
 
     const data = await response.json();
     const address = data.address || {};
 
+    // Find the most useful road name returned by OpenStreetMap.
     const road = address.road ||
       address.pedestrian ||
-      address.path ||
-      address.footway ||
+      address.residential ||
+      address.highway ||
       address.motorway ||
       address.trunk ||
       address.primary ||
-      address.secondary;
+      address.secondary ||
+      address.tertiary ||
+      address.path;
 
     $('roadName').textContent = road || 'Road name unavailable';
 
   } catch (error) {
-    $('roadName').textContent = 'Approximate road location unavailable';
+    $('roadName').textContent = 'Road lookup unavailable';
+
+    // Allow a fresh attempt if the request failed.
+    lastRoadLookup = 0;
+    lastRoadPosition = null;
 
   } finally {
     roadRequestActive = false;
   }
 }
 
-// ---------- Four-hour weather forecast ----------
+/* ---------- Four-hour weather forecast ---------- */
 
 let lastWeatherRequest = 0;
 let lastWeatherPosition = null;
@@ -406,7 +446,6 @@ async function updateWeather(lat, lon) {
   $('weatherList').innerHTML = '<div class="weather-message">Updating forecast…</div>';
 
   try {
-    // Request only rain probability and weather type, not temperature.
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&hourly=precipitation_probability,weather_code&forecast_days=2&timezone=auto`;
     const response = await fetch(url);
 
@@ -451,7 +490,6 @@ async function updateWeather(lat, lon) {
 
   } catch (error) {
     $('weatherList').innerHTML = '<div class="weather-message">Forecast unavailable</div>';
-
     // Allow another attempt after ten minutes if the service is temporarily unavailable.
     lastWeatherRequest = Date.now() - 20 * 60 * 1000;
 
@@ -460,329 +498,395 @@ async function updateWeather(lat, lon) {
   }
 }
 
-// ---------- Camera support ----------
+/* ---------- Start GPS tracking ---------- */
 
-const video = $('video');
-const live = $('live');
-const fallback = $('fallback');
-const cameraInput = $('cameraInput');
-const shutter = $('shutter');
+function startGPS() {
+  if (!navigator.geolocation) {
+    return setGps('bad', 'GPS isn’t available on this device');
+  }
 
-let cameraStream = null;
-let imageCapture = null;
+  navigator.geolocation.watchPosition(p => {
+    pos = p;
 
-// Try to open the live camera on browsers that support it.
-async function startLiveCamera() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    // Update the road name and local weather using the latest GPS coordinates.
+    updateRoadName(p.coords.latitude, p.coords.longitude);
+    updateWeather(p.coords.latitude, p.coords.longitude);
+
+    const a = Math.round(p.coords.accuracy);
+
+    setGps(
+      a <= 20 ? 'ok' : 'wait',
+      a <= 20
+        ? `GPS ready · accurate to ±${a} m`
+        : `Weak signal · ±${a} m. Move to open sky.`,
+      p.coords
+    );
+
+  }, e => {
+    if (e.code === 1) {
+      setGps('bad', 'Location is blocked. Allow it in your browser settings, then reload.');
+    } else if (!pos) {
+      setGps('wait', 'Still looking for a GPS signal…');
+    }
+
+  }, {
+    enableHighAccuracy: true,
+    maximumAge: 2000,
+    timeout: 20000
+  });
+}
+
+/* ---------- Camera-app photo capture ---------- */
+
+$('take').onclick = () => {
+  tapPos = pos;
+  $('cam').click();
+};
+
+$('cam').onchange = async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+
+  toast('Saving photo…', true);
 
   try {
-    cameraStream = await navigator.mediaDevices.getUserMedia({
+    const img = new Image();
+    const u = URL.createObjectURL(f);
+
+    img.src = u;
+    await img.decode();
+
+    const rec = await save(img, img.naturalWidth, img.naturalHeight, tapPos || pos);
+
+    URL.revokeObjectURL(u);
+
+    toast(rec.lat == null ? 'Saved, but there was no GPS fix' : 'Photo saved ✓');
+
+  } catch (err) {
+    toast('Couldn’t save that photo');
+  }
+
+  tapPos = null;
+  e.target.value = '';
+};
+
+/* ---------- Android live camera ---------- */
+
+function showLive(on) {
+  $('live').hidden = !on;
+  $('take').style.display = on ? 'none' : '';
+  $('takeHint').style.display = on ? 'none' : '';
+}
+
+async function startCam() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: { ideal: 'environment' },
-        width: { ideal: 1920 },
-        height: { ideal: 1080 }
+        width: { ideal: 3840 },
+        height: { ideal: 2160 }
       },
       audio: false
     });
 
-    video.srcObject = cameraStream;
-    live.hidden = false;
-    fallback.hidden = true;
+    $('video').srcObject = stream;
+    await $('video').play();
 
-    if ('ImageCapture' in window) {
-      const track = cameraStream.getVideoTracks()[0];
-      imageCapture = new ImageCapture(track);
-    }
+    imgCap = new ImageCapture(stream.getVideoTracks()[0]);
 
-  } catch (error) {
-    live.hidden = true;
-    fallback.hidden = false;
+    showLive(true);
+
+  } catch (e) {
+    showLive(false);
+    toast('Live camera unavailable, so the camera app will be used instead.');
   }
 }
 
-// Use the live camera when available.
-startLiveCamera();
+// Restart camera if Android pauses it in the background.
+document.addEventListener('visibilitychange', () => {
+  const t = stream && stream.getVideoTracks()[0];
 
-// ---------- Save photos ----------
+  if (!document.hidden && LIVE && !$('live').hidden && (!t || t.readyState !== 'live')) {
+    startCam();
+  }
+});
 
-let db;
+/* ---------- Capture full-resolution photo ---------- */
 
-function openDatabase() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('GeoCamDatabase', 1);
+async function grabStill() {
+  try {
+    const caps = await imgCap.getPhotoCapabilities();
+    const opts = {};
 
-    request.onupgradeneeded = event => {
-      const database = event.target.result;
+    if (caps.imageWidth && caps.imageHeight) {
+      const w = caps.imageWidth.max;
+      const h = caps.imageHeight.max;
+      const k = Math.min(1, Math.sqrt(16e6 / (w * h)));
 
-      if (!database.objectStoreNames.contains('photos')) {
-        database.createObjectStore('photos', { keyPath: 'id', autoIncrement: true });
+      opts.imageWidth = Math.round(w * k);
+      opts.imageHeight = Math.round(h * k);
+    }
+
+    const bmp = await createImageBitmap(await imgCap.takePhoto(opts));
+
+    return { src: bmp, w: bmp.width, h: bmp.height };
+
+  } catch (e) {
+    const v = $('video');
+
+    // Use a video frame if full-resolution capture fails.
+    return { src: v, w: v.videoWidth, h: v.videoHeight };
+  }
+}
+
+$('shutter').onclick = async () => {
+  const v = $('video');
+
+  if (!v.videoWidth) return;
+
+  const btn = $('shutter');
+  btn.disabled = true;
+
+  v.classList.remove('shot');
+  void v.offsetWidth;
+  v.classList.add('shot');
+
+  // Lock GPS position at the moment of capture.
+  const p = pos;
+
+  try {
+    const still = await grabStill();
+
+    const rec = await save(still.src, still.w, still.h, p);
+
+    toast(rec.lat == null ? 'Saved, but there was no GPS fix' : 'Photo saved ✓');
+
+  } catch (e) {
+    toast('Couldn’t save that photo');
+  }
+
+  btn.disabled = false;
+};
+
+/* ---------- Stamp GPS information onto photos ---------- */
+
+async function save(source, w, h, p) {
+  const now = new Date();
+  const c = p && p.coords;
+
+  const when = now.toLocaleString([], {
+    dateStyle: 'medium',
+    timeStyle: 'medium'
+  });
+
+  const en = c ? toBNG(c.latitude, c.longitude) : null;
+
+  // Keep BNG coordinates, but do not bake latitude/longitude into the image.
+  const enText = en
+    ? `E ${en.e.toFixed(2)}   N ${en.n.toFixed(2)}   (BNG)`
+    : 'E/N unavailable (outside GB grid)';
+
+  const lines = c
+    ? [
+        enText,
+        `±${Math.round(c.accuracy)} m   ${when}`
+      ]
+    : ['No GPS fix', when];
+
+  // Limit photos to approximately 16 megapixels.
+  const k = Math.min(1, Math.sqrt(16e6 / (w * h)));
+
+  w = Math.round(w * k);
+  h = Math.round(h * k);
+
+  const cv = document.createElement('canvas');
+
+  cv.width = w;
+  cv.height = h;
+
+  const x = cv.getContext('2d');
+
+  x.drawImage(source, 0, 0, w, h);
+
+  // Dark information bar along the bottom of the photo.
+  const fs = Math.max(16, Math.round(Math.min(w, h) * 0.03));
+  const barH = Math.round(lines.length * fs * 1.4 + fs);
+
+  x.fillStyle = 'rgba(0,0,0,.65)';
+  x.fillRect(0, h - barH, w, barH);
+
+  x.fillStyle = '#fff';
+  x.textBaseline = 'top';
+  x.font = `bold ${fs}px ui-monospace, Menlo, Consolas, monospace`;
+
+  lines.forEach((t, i) => {
+    x.fillText(t, fs * 0.6, h - barH + fs * 0.5 + i * fs * 1.4);
+  });
+
+  // Create a smaller thumbnail for the photo grid.
+  const th = document.createElement('canvas');
+
+  th.width = 360;
+  th.height = Math.round(360 * h / w);
+
+  th.getContext('2d').drawImage(cv, 0, 0, th.width, th.height);
+
+  const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+
+  const rec = {
+    blob: await toBlob(cv, 0.95),
+    thumb: await toBlob(th, 0.8),
+    w, h,
+    lat: c ? c.latitude : null,
+    lon: c ? c.longitude : null,
+    acc: c ? c.accuracy : null,
+    e: en ? en.e : null,
+    n: en ? en.n : null,
+    time: now.getTime(),
+    name: `geocam_${stamp}${c ? '' : '_nogps'}.jpg`
+  };
+
+  await tx('readwrite', s => s.add(rec));
+
+  render();
+
+  return rec;
+}
+
+/* ---------- Photo downloads and deletion ---------- */
+
+function download(r) {
+  const u = URL.createObjectURL(r.blob);
+  const a = document.createElement('a');
+
+  a.href = u;
+  a.download = r.name;
+
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  setTimeout(() => URL.revokeObjectURL(u), 10000);
+}
+
+async function render() {
+  photos = (await tx('readonly', s => s.getAll())).reverse();
+
+  urls.forEach(URL.revokeObjectURL);
+  urls = [];
+
+  $('count').textContent = photos.length;
+  $('tools').style.display = photos.length ? '' : 'none';
+  $('empty').style.display = photos.length ? 'none' : '';
+
+  const grid = $('grid');
+  grid.innerHTML = '';
+
+  for (const r of photos) {
+    const u = URL.createObjectURL(r.thumb);
+    urls.push(u);
+
+    // Show BNG coordinates in the gallery, never latitude/longitude.
+    const place = r.e != null
+      ? `E ${r.e.toFixed(2)} · N ${r.n.toFixed(2)}`
+      : 'No BNG coordinates available';
+
+    const t = document.createElement('div');
+    t.className = 'tile';
+
+    t.innerHTML = `
+      <img src="${u}" alt="Photo">
+      <div class="meta">
+        <b>${new Date(r.time).toLocaleString([], {
+          dateStyle: 'short',
+          timeStyle: 'short'
+        })}</b>
+        <span>${place}</span>
+        <span>${r.w ? `${r.w}×${r.h} · ${(r.blob.size / 1048576).toFixed(1)} MB` : ''}</span>
+      </div>
+      <div class="acts"></div>
+      <button class="btn link del">Delete</button>
+    `;
+
+    // Open full-size photo when tapped.
+    t.querySelector('img').onclick = () => {
+      const v = $('view');
+      const vu = URL.createObjectURL(r.blob);
+
+      v.firstElementChild.src = vu;
+      v.style.display = 'flex';
+
+      v.onclick = () => {
+        v.style.display = 'none';
+        URL.revokeObjectURL(vu);
+      };
+    };
+
+    const acts = t.querySelector('.acts');
+
+    const add = (label, cls, fn) => {
+      const b = document.createElement('button');
+
+      b.className = 'btn ' + cls;
+      b.textContent = label;
+      b.onclick = fn;
+
+      acts.appendChild(b);
+    };
+
+    add('Download', '', () => download(r));
+
+    t.querySelector('.del').onclick = async () => {
+      if (confirm('Delete this photo?')) {
+        await tx('readwrite', s => s.delete(r.id));
+        render();
       }
     };
 
-    request.onsuccess = event => {
-      db = event.target.result;
-      resolve(db);
-    };
-
-    request.onerror = () => reject(request.error);
-  });
+    grid.appendChild(t);
+  }
 }
 
-function savePhoto(blob, position) {
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction('photos', 'readwrite');
-    const store = transaction.objectStore('photos');
+/* ---------- Download all photos ---------- */
 
-    const record = {
-      blob,
-      date: new Date().toISOString(),
-      lat: position?.lat ?? null,
-      lon: position?.lon ?? null
-    };
+$('dlAll').onclick = async () => {
+  for (const r of photos) {
+    download(r);
+    await new Promise(res => setTimeout(res, 500));
+  }
+};
 
-    const request = store.add(record);
+/* ---------- Delete all photos ---------- */
 
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
+$('delAll').onclick = async () => {
+  if (confirm(`Delete all ${photos.length} photos from this device? Make sure you’ve downloaded them first.`)) {
+    await tx('readwrite', s => s.clear());
+    render();
+  }
+};
 
-function getPhotos() {
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction('photos', 'readonly');
-    const request = transaction.objectStore('photos').getAll();
+/* ---------- Start application ---------- */
 
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-function deletePhoto(id) {
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction('photos', 'readwrite');
-    transaction.objectStore('photos').delete(id);
-
-    transaction.oncomplete = resolve;
-    transaction.onerror = () => reject(transaction.error);
-  });
-}
-
-// ---------- Stamp photo with location ----------
-
-async function stampPhoto(blob, position) {
-  const image = await createImageBitmap(blob);
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-
-  canvas.width = image.width;
-  canvas.height = image.height;
-
-  ctx.drawImage(image, 0, 0);
-
-  const grid = position
-    ? toBritishNationalGrid(position.lat, position.lon)
-    : null;
-
-  const padding = Math.round(canvas.width * 0.025);
-  const fontSize = Math.max(18, Math.round(canvas.width * 0.022));
-  const lineHeight = fontSize * 1.4;
-
-  const lines = [
-    'SJS - GeoCam',
-    new Date().toLocaleString('en-GB'),
-    grid ? `Easting: ${grid.easting}` : 'Easting: unavailable',
-    grid ? `Northing: ${grid.northing}` : 'Northing: unavailable'
-  ];
-
-  const boxHeight = padding * 2 + lines.length * lineHeight;
-
-  ctx.fillStyle = 'rgba(0,0,0,0.68)';
-  ctx.fillRect(0, canvas.height - boxHeight, canvas.width, boxHeight);
-
-  ctx.fillStyle = '#fff';
-  ctx.font = `600 ${fontSize}px Arial`;
-  ctx.textBaseline = 'top';
-
-  lines.forEach((line, index) => {
-    ctx.fillText(line, padding, canvas.height - boxHeight + padding + index * lineHeight);
-  });
-
-  return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
-}
-
-// Capture from the live camera.
-shutter.addEventListener('click', async () => {
-  if (!cameraStream) return;
-
-  shutter.disabled = true;
-
+(async () => {
   try {
-    let blob;
-
-    if (imageCapture && imageCapture.takePhoto) {
-      blob = await imageCapture.takePhoto();
-    } else {
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext('2d').drawImage(video, 0, 0);
-      blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
-    }
-
-    await processPhoto(blob);
-
-  } catch (error) {
-    showToast('Could not take photo');
-
-  } finally {
-    shutter.disabled = false;
-  }
-});
-
-// Process a photo from either camera method.
-async function processPhoto(blob) {
-  const position = currentPosition;
-  const stamped = await stampPhoto(blob, position);
-
-  await savePhoto(stamped, position);
-  await renderPhotos();
-
-  showToast('Photo saved');
-}
-
-// iPhone camera fallback.
-cameraInput.addEventListener('change', async event => {
-  const file = event.target.files?.[0];
-
-  if (!file) return;
-
-  try {
-    await processPhoto(file);
-  } catch (error) {
-    showToast('Could not save photo');
+    db = await openDB();
+  } catch (e) {
+    toast('Photos can’t be stored in this browser', true);
   }
 
-  cameraInput.value = '';
-});
-
-// ---------- Display saved photos ----------
-
-async function renderPhotos() {
-  const photos = await getPhotos();
-  const grid = $('photoGrid');
-
-  grid.innerHTML = '';
-  $('emptyState').hidden = photos.length > 0;
-
-  photos.forEach(photo => {
-    const tile = document.createElement('div');
-    tile.className = 'tile';
-
-    const image = document.createElement('img');
-    image.src = URL.createObjectURL(photo.blob);
-    image.alt = 'Saved survey photo';
-
-    image.addEventListener('click', () => {
-      const viewer = $('view');
-      viewer.innerHTML = '';
-      const largeImage = document.createElement('img');
-      largeImage.src = image.src;
-      viewer.appendChild(largeImage);
-      viewer.style.display = 'flex';
-    });
-
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-
-    const date = new Date(photo.date).toLocaleString('en-GB');
-    meta.innerHTML = `<b>${date}</b>`;
-
-    const actions = document.createElement('div');
-    actions.className = 'acts';
-
-    const download = document.createElement('button');
-    download.className = 'btn';
-    download.textContent = 'Download';
-    download.addEventListener('click', () => {
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(photo.blob);
-      link.download = `GeoCam_${photo.id}.jpg`;
-      link.click();
-      URL.revokeObjectURL(link.href);
-    });
-
-    const remove = document.createElement('button');
-    remove.className = 'btn';
-    remove.textContent = 'Delete';
-    remove.addEventListener('click', async () => {
-      await deletePhoto(photo.id);
-      await renderPhotos();
-      showToast('Photo deleted');
-    });
-
-    actions.append(download, remove);
-    tile.append(image, meta, actions);
-    grid.appendChild(tile);
-  });
-}
-
-// Close full-size photo viewer.
-$('view').addEventListener('click', () => {
-  $('view').style.display = 'none';
-  $('view').innerHTML = '';
-});
-
-// ---------- Download all photos ----------
-
-$('downloadAll').addEventListener('click', async () => {
-  const photos = await getPhotos();
-
-  if (!photos.length) {
-    showToast('No photos to download');
-    return;
+  if (navigator.storage && navigator.storage.persist) {
+    navigator.storage.persist();
   }
 
-  photos.forEach((photo, index) => {
-    setTimeout(() => {
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(photo.blob);
-      link.download = `GeoCam_${photo.id}.jpg`;
-      link.click();
+  if (db) render();
 
-      setTimeout(() => URL.revokeObjectURL(link.href), 2000);
-    }, index * 500);
-  });
+  startGPS();
 
-  showToast(`Downloading ${photos.length} photos`);
-});
-
-// ---------- Clear all photos ----------
-
-$('clearAll').addEventListener('click', async () => {
-  if (!confirm('Delete all saved photos? This cannot be undone.')) return;
-
-  const transaction = db.transaction('photos', 'readwrite');
-  transaction.objectStore('photos').clear();
-
-  transaction.oncomplete = async () => {
-    await renderPhotos();
-    showToast('All photos deleted');
-  };
-});
-
-// ---------- Start the app ----------
-
-async function initialise() {
-  try {
-    await openDatabase();
-    await renderPhotos();
-  } catch (error) {
-    showToast('Could not open photo storage');
+  if (LIVE) {
+    showLive(true);
+    startCam();
   }
-}
-
-initialise();
-
+})();
 </script>
 </body>
 </html>
