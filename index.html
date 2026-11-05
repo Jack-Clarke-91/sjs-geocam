@@ -18,40 +18,36 @@
 html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 
 
-/* Dark slate header with a dark technical grid */
+/* Dark slate header with a subdued technical grid */
 header{
   background-color:#343b43;
   background-image:
-    linear-gradient(rgba(15,22,29,.55) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15,22,29,.55) 1px, transparent 1px),
-    linear-gradient(135deg, transparent 49.5%, rgba(15,22,29,.25) 50%, transparent 50.5%);
+    linear-gradient(rgba(15,22,29,.38) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15,22,29,.38) 1px, transparent 1px),
+    linear-gradient(135deg, transparent 49.5%, rgba(15,22,29,.18) 50%, transparent 50.5%);
   background-size:24px 24px, 24px 24px, 48px 48px;
+  color:#e8e7e1;
   padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
   border-bottom:1px solid #505963;
-  color:#e8e7e1;
 }
 
 header h1{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  max-width:720px;
-  margin:0 auto;
   font-family:'IBM Plex Mono',monospace;
   font-size:20px;
   font-weight:500;
   letter-spacing:1px;
   color:#e8e7e1;
+  max-width:720px;
+  margin:0 auto;
 }
 
 header h1 span{
-  color:#e8e7e1;
-  font-size:16px;
-  font-weight:500;
-  letter-spacing:1.5px;
+  color:#d9784e;
+  padding:0 10px 0 0;
 }
 
 
+2. Replace your header HTML with this
 main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
 
 /* GPS card */
@@ -156,7 +152,7 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 </head>
 
 <body>
-<header><h1>SJS Site Engineering <span>GEOCAM</span></h1></header>
+<header><h1>SJS <span>GEOCAM</span></h1></header>
 
 <main>
 
