@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="GeoCam">
 <meta name="theme-color" content="#14212b">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2314212b'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23d9480f'/%3E%3C/svg%3E">
-<title>SJS GeoCam</title>
+<title>GeoCam</title>
 <style>
 :root{--bg:#f1f4f6;--card:#fff;--ink:#14212b;--mut:#5d6b76;--line:#d9e0e5;--acc:#d9480f;--acc2:#a83a0a;--ok:#1b7a4b;--warn:#b26a00;--bad:#c62828}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -35,6 +35,16 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 .take:active{transform:translateY(2px);box-shadow:0 1px 0 var(--acc2)}
 .hint{margin:0;text-align:center;font-size:13px;color:var(--mut)}
 
+/* Live view (Android only) */
+.live{margin-top:16px}
+.cam{position:relative;background:#000;border-radius:14px;overflow:hidden;aspect-ratio:3/4;max-height:62vh;width:100%}
+.cam video{width:100%;height:100%;object-fit:contain;display:block}
+.cam video.shot{animation:flash .25s}
+@keyframes flash{from{opacity:.2}to{opacity:1}}
+.shutter{display:block;margin:14px auto 6px;width:80px;height:80px;border-radius:50%;border:5px solid var(--ink);background:var(--acc);cursor:pointer}
+.shutter:active{transform:scale(.94)}
+.shutter:disabled{opacity:.5}
+
 /* Photos */
 .bar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:26px 0 12px}
 .bar h2{margin:0;font-size:18px}
@@ -60,7 +70,7 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 </style>
 </head>
 <body>
-<header><h1>GeoCam<span>GPS-stamped photos</span></h1></header>
+<header><h1>SJS GeoCam</h1></header>
 
 <main>
   <section class="card" id="gpsCard" data-state="wait">
@@ -73,11 +83,19 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
     <div class="note">British National Grid. These values are stamped on every photo.</div>
   </section>
 
+  <!-- Android: live camera view with a round shutter (shown by the script) -->
+  <section class="live" id="live" hidden>
+    <div class="cam"><video id="video" autoplay playsinline muted></video></div>
+    <button class="shutter" id="shutter" aria-label="Take photo"></button>
+    <p class="hint">Tap the round button to take a photo.</p>
+  </section>
+
+  <!-- iPhone: big button that opens the camera app (hidden by the script on Android) -->
   <button class="take" id="take">
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
     Take photo
   </button>
-  <p class="hint">Opens your camera. Take the photo, then confirm it (“Use Photo” on iPhone, ✓ on Android).</p>
+  <p class="hint" id="takeHint">Opens your camera. Take the photo, then confirm it (“Use Photo” on iPhone, ✓ on Android).</p>
   <input type="file" id="cam" accept="image/*" capture="environment" hidden>
 
   <div class="bar">
@@ -97,7 +115,11 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 
 <script>
 const $ = id => document.getElementById(id);
-let db, pos = null, tapPos = null, photos = [], urls = [];
+let db, pos = null, tapPos = null, photos = [], urls = [], stream = null, imgCap = null;
+// iPhone/iPad Safari can't take full-quality stills from a web page, so it uses the camera-app button.
+// Android Chrome can (ImageCapture), so it gets the live view with a one-tap shutter.
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const LIVE = !IS_IOS && 'ImageCapture' in window;
 const pad = n => String(n).padStart(2, '0');
 const toBlob = (c, q) => new Promise(r => c.toBlob(r, 'image/jpeg', q));
 
@@ -224,6 +246,61 @@ $('cam').onchange = async e => {
   tapPos = null; e.target.value = '';
 };
 
+/* ---------- Android: live view + one-tap full-resolution photo ---------- */
+// Show the live view (Android) or the camera-app button (iPhone, or if the live camera can't start)
+function showLive(on) {
+  $('live').hidden = !on;
+  $('take').style.display = on ? 'none' : '';
+  $('takeHint').style.display = on ? 'none' : '';
+}
+async function startCam() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 3840 }, height: { ideal: 2160 } }, audio: false });
+    $('video').srcObject = stream;
+    await $('video').play();
+    imgCap = new ImageCapture(stream.getVideoTracks()[0]);
+    showLive(true);
+  } catch (e) {
+    showLive(false);   // camera blocked or unavailable: fall back to the camera-app button
+    toast('Live camera unavailable, so the camera app will be used instead.');
+  }
+}
+// Restart the camera if the phone paused it while the app was in the background
+document.addEventListener('visibilitychange', () => {
+  const t = stream && stream.getVideoTracks()[0];
+  if (!document.hidden && LIVE && !$('live').hidden && (!t || t.readyState !== 'live')) startCam();
+});
+
+// Ask the camera for a real full-resolution still (capped at ~16 MP), which is much sharper than a video frame
+async function grabStill() {
+  try {
+    const caps = await imgCap.getPhotoCapabilities();
+    const opts = {};
+    if (caps.imageWidth && caps.imageHeight) {
+      const w = caps.imageWidth.max, h = caps.imageHeight.max, k = Math.min(1, Math.sqrt(16e6 / (w * h)));
+      opts.imageWidth = Math.round(w * k); opts.imageHeight = Math.round(h * k);
+    }
+    const bmp = await createImageBitmap(await imgCap.takePhoto(opts));
+    return { src: bmp, w: bmp.width, h: bmp.height };
+  } catch (e) {
+    const v = $('video');   // fallback: a frame from the live video (lower resolution)
+    return { src: v, w: v.videoWidth, h: v.videoHeight };
+  }
+}
+$('shutter').onclick = async () => {
+  const v = $('video'); if (!v.videoWidth) return;
+  const btn = $('shutter'); btn.disabled = true;
+  v.classList.remove('shot'); void v.offsetWidth; v.classList.add('shot');   // quick flash so you know it fired
+  const p = pos;                                                             // lock in the GPS fix at the moment of the tap
+  try {
+    const still = await grabStill();
+    const rec = await save(still.src, still.w, still.h, p);
+    toast(rec.lat == null ? 'Saved, but there was no GPS fix' : 'Photo saved ✓');
+  } catch (e) { toast('Couldn’t save that photo'); }
+  btn.disabled = false;
+};
+
 /* ---------- Stamp the GPS text onto the photo and save it ---------- */
 async function save(source, w, h, p) {
   const now = new Date(), c = p && p.coords;
@@ -341,6 +418,7 @@ $('delAll').onclick = async () => {
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist();   // ask the browser not to clear our photos
   if (db) render();
   startGPS();
+  if (LIVE) { showLive(true); startCam(); }   // Android: live view. iPhone: the camera-app button stays.
 })();
 </script>
 </body>
