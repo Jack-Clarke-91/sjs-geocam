@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -54,9 +53,10 @@ header h1 span::before{
   left:0;
   top:50%;
   transform:translateY(-50%);
-  height:23px; /* Match SJS font size */
+  height:23px;
   width:1px;
   background:#59636b;
+  margin-top:0;
 }
 
 main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
@@ -390,13 +390,13 @@ async function updateRoadName(lat, lon) {
 
   try {
     // Ask OpenStreetMap for the nearest mapped address.
-    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&zoom=18&addressdetails=1`;
+    const url = https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&zoom=18&addressdetails=1;
 
     const response = await fetch(url, {
       headers: { Accept: 'application/json' }
     });
 
-    if (!response.ok) throw new Error(`Road lookup returned ${response.status}`);
+    if (!response.ok) throw new Error(Road lookup returned ${response.status});
 
     const data = await response.json();
     const address = data.address || {};
@@ -469,10 +469,10 @@ async function updateWeather(lat, lon) {
   $('weatherList').innerHTML = '<div class="weather-message">Updating forecast…</div>';
 
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&hourly=precipitation_probability,weather_code&forecast_days=2&timezone=auto`;
+    const url = https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&hourly=precipitation_probability,weather_code&forecast_days=2&timezone=auto;
     const response = await fetch(url);
 
-    if (!response.ok) throw new Error(`Weather request returned ${response.status}`);
+    if (!response.ok) throw new Error(Weather request returned ${response.status});
 
     const data = await response.json();
     const hourly = data.hourly;
@@ -501,7 +501,7 @@ async function updateWeather(lat, lon) {
           <span class="weather-icon">${icon}</span>
           <span>
             <span class="weather-time">${label}</span>
-            <span class="weather-rain">${rain == null ? '' : `${rain}% rain`}</span>
+            <span class="weather-rain">${rain == null ? '' : ${rain}% rain}</span>
           </span>
         </div>
       `);
@@ -540,8 +540,8 @@ function startGPS() {
     setGps(
       a <= 20 ? 'ok' : 'wait',
       a <= 20
-        ? `GPS ready · accurate to ±${a} m`
-        : `Weak signal · ±${a} m. Move to open sky.`,
+        ? GPS ready · accurate to ±${a} m
+        : Weak signal · ±${a} m. Move to open sky.,
       p.coords
     );
 
@@ -706,13 +706,13 @@ async function save(source, w, h, p) {
 
   // Keep BNG coordinates, but do not bake latitude/longitude into the image.
   const enText = en
-    ? `E ${en.e.toFixed(2)}   N ${en.n.toFixed(2)}   (BNG)`
+    ? E ${en.e.toFixed(2)}   N ${en.n.toFixed(2)}   (BNG)
     : 'E/N unavailable (outside GB grid)';
 
   const lines = c
     ? [
         enText,
-        `±${Math.round(c.accuracy)} m   ${when}`
+        ±${Math.round(c.accuracy)} m   ${when}
       ]
     : ['No GPS fix', when];
 
@@ -740,7 +740,7 @@ async function save(source, w, h, p) {
 
   x.fillStyle = '#fff';
   x.textBaseline = 'top';
-  x.font = `bold ${fs}px ui-monospace, Menlo, Consolas, monospace`;
+  x.font = bold ${fs}px ui-monospace, Menlo, Consolas, monospace;
 
   lines.forEach((t, i) => {
     x.fillText(t, fs * 0.6, h - barH + fs * 0.5 + i * fs * 1.4);
@@ -754,7 +754,7 @@ async function save(source, w, h, p) {
 
   th.getContext('2d').drawImage(cv, 0, 0, th.width, th.height);
 
-  const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+  const stamp = ${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())};
 
   const rec = {
     blob: await toBlob(cv, 0.95),
@@ -766,7 +766,7 @@ async function save(source, w, h, p) {
     e: en ? en.e : null,
     n: en ? en.n : null,
     time: now.getTime(),
-    name: `geocam_${stamp}${c ? '' : '_nogps'}.jpg`
+    name: geocam_${stamp}${c ? '' : '_nogps'}.jpg
   };
 
   await tx('readwrite', s => s.add(rec));
@@ -811,7 +811,7 @@ async function render() {
 
     // Show BNG coordinates in the gallery, never latitude/longitude.
     const place = r.e != null
-      ? `E ${r.e.toFixed(2)} · N ${r.n.toFixed(2)}`
+      ? E ${r.e.toFixed(2)} · N ${r.n.toFixed(2)}
       : 'No BNG coordinates available';
 
     const t = document.createElement('div');
@@ -825,7 +825,7 @@ async function render() {
           timeStyle: 'short'
         })}</b>
         <span>${place}</span>
-        <span>${r.w ? `${r.w}×${r.h} · ${(r.blob.size / 1048576).toFixed(1)} MB` : ''}</span>
+        <span>${r.w ? ${r.w}×${r.h} · ${(r.blob.size / 1048576).toFixed(1)} MB : ''}</span>
       </div>
       <div class="acts"></div>
       <button class="btn link del">Delete</button>
@@ -882,7 +882,7 @@ $('dlAll').onclick = async () => {
 /* ---------- Delete all photos ---------- */
 
 $('delAll').onclick = async () => {
-  if (confirm(`Delete all ${photos.length} photos from this device? Make sure you’ve downloaded them first.`)) {
+  if (confirm(Delete all ${photos.length} photos from this device? Make sure you’ve downloaded them first.)) {
     await tx('readwrite', s => s.clear());
     render();
   }
