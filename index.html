@@ -18,13 +18,13 @@
 html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 
 
-/* Dark slate header with a subtle technical grid */
+/* Dark slate header with a subdued technical grid */
 header{
   background-color:#343b43;
   background-image:
-    linear-gradient(rgba(190,202,214,.16) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(190,202,214,.16) 1px, transparent 1px),
-    linear-gradient(135deg, transparent 49.5%, rgba(190,202,214,.06) 50%, transparent 50.5%);
+    linear-gradient(rgba(15,22,29,.38) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15,22,29,.38) 1px, transparent 1px),
+    linear-gradient(135deg, transparent 49.5%, rgba(15,22,29,.18) 50%, transparent 50.5%);
   background-size:24px 24px, 24px 24px, 48px 48px;
   color:#e8e7e1;
   padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
@@ -43,8 +43,11 @@ header h1{
 
 header h1 span{
   color:#d9784e;
-  padding:0 3px;
+  padding:0 10px 0 0;
 }
+
+
+2. Replace your header HTML with this
 main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
 
 /* GPS card */
@@ -149,7 +152,7 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 </head>
 
 <body>
-<header><h1>SJS <span>/</span> GEOCAM</h1></header>
+<header><h1>SJS <span>GEOCAM</span></h1></header>
 
 <main>
 
