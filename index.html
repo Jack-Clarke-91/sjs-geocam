@@ -16,15 +16,15 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 
-/* Dark slate header with a subtle technical blueprint pattern */
+/* Dark slate header with a more visible technical grid */
 header{
   background-color:#343b43;
   background-image:
-    linear-gradient(rgba(255,255,255,.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.055) 1px, transparent 1px),
-    linear-gradient(135deg, transparent 49.7%, rgba(255,255,255,.025) 50%, transparent 50.3%);
+    linear-gradient(rgba(190,202,214,.20) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(190,202,214,.20) 1px, transparent 1px),
+    linear-gradient(135deg, transparent 49.5%, rgba(190,202,214,.07) 50%, transparent 50.5%);
   background-size:24px 24px, 24px 24px, 48px 48px;
-  color:#fff;
+  color:#e8e7e1;
   padding:calc(8px + env(safe-area-inset-top)) 16px 8px;
   border-bottom:1px solid #505963;
 }
@@ -33,6 +33,7 @@ header h1{
   font-size:20px;
   font-weight:700;
   letter-spacing:.4px;
+  color:#e8e7e1;
   max-width:720px;
   margin:0 auto;
 }
