@@ -19,16 +19,15 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-u
 
 
 header{
-  background-color:#20262d; /* Much darker charcoal background */
+  background-color:#20262d;
   background-image:
     linear-gradient(rgba(10,15,20,.28) 1px, transparent 1px),
     linear-gradient(90deg, rgba(10,15,20,.28) 1px, transparent 1px);
   background-size:20px 20px;
   color:#e8e7e1;
   padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
-  border-bottom:1px solid #505963;
+  border-bottom:1px solid #353d46;
 }
-
 
 header h1{
   font-family:'IBM Plex Mono',monospace;
@@ -38,15 +37,20 @@ header h1{
   color:#e8e7e1;
   max-width:720px;
   margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
 }
 
 header h1 span{
-  color:#d9784e;
-  padding:0 10px 0 0;
+  color:#ff9a45;
+  font-size:16px;
+  font-weight:500;
+  letter-spacing:1.5px;
 }
 
 
-2. Replace your header HTML with this
+
 main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
 
 /* GPS card */
