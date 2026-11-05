@@ -26,6 +26,7 @@ video.shot{animation:flash .25s}
 /* Shutter row: empty spacer | shutter | Photos button, so the shutter stays centred */
 .shutterRow{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:14px 12px 6px}
 #toPhotos{justify-self:end}
+#hint{margin:0;padding:0 12px 8px;text-align:center;font-size:13px;color:var(--mut);min-height:1.4em}
 #shutter{display:block;margin:0;width:76px;height:76px;border-radius:50%;border:5px solid var(--ink);background:var(--acc);cursor:pointer}
 #shutter:active{transform:scale(.94)}
 #shutter:disabled{opacity:.5}
@@ -52,7 +53,7 @@ button.b.d{border-color:var(--bad);color:var(--bad)}
 
 <div class="cam">
   <video id="video" autoplay playsinline muted></video>
-  <div id="camMsg">Camera unavailable. Use “Phone camera app” below instead.</div>
+  <div id="camMsg">Live camera unavailable. Use “Full-quality camera” below instead.</div>
 </div>
 <div class="shutterRow">
   <span></span>
@@ -60,12 +61,14 @@ button.b.d{border-color:var(--bad);color:var(--bad)}
   <!-- Jumps down to the photo list (the page scrolls). Label shows the photo count. -->
   <button class="b p" id="toPhotos">Photos ↓</button>
 </div>
+<p id="hint"></p>
 
 <div class="bar" id="photosBar">
   <h2>Photos (<span id="count">0</span>)</h2>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
     <button class="b" id="toCam">Camera ↑</button>
-    <button class="b" id="fallbackBtn">Phone camera app</button>
+    <button class="b" id="fallbackBtn">Full-quality camera</button>
+    <button class="b p" id="shareAll">Share all</button>
     <button class="b p" id="dlAll">Download all</button>
   </div>
 </div>
@@ -76,7 +79,8 @@ button.b.d{border-color:var(--bad);color:var(--bad)}
 <script>
 const $ = id => document.getElementById(id);
 const video = $('video'), gallery = $('gallery');
-let db, stream, pos = null, urls = [];
+let db, stream, pos = null, urls = [], imgCap = null;   // imgCap = full-resolution still capture (Android/Chrome)
+let photos = [];   // copy of the saved photos, kept in memory so "Share all" can run instantly on tap
 
 /* ---------- Storage: IndexedDB keeps photos on this device between visits ---------- */
 function openDB() {
@@ -102,7 +106,9 @@ function startGPS() {
   navigator.geolocation.watchPosition(p => {
     pos = p;
     const c = p.coords;
-    setGps(`${c.latitude.toFixed(6)}, ${c.longitude.toFixed(6)} ±${Math.round(c.accuracy)} m`, 'ok');
+    const en = toBNG(c.latitude, c.longitude);
+    setGps(`${c.latitude.toFixed(6)}, ${c.longitude.toFixed(6)} ±${Math.round(c.accuracy)} m` +
+           (en ? `  |  E ${Math.round(en.e)}  N ${Math.round(en.n)}` : ''), 'ok');
   }, e => {
     if (e.code === 1) setGps('Location blocked. Allow it in browser settings.', 'bad');
     else if (!pos) setGps('No GPS fix yet…', 'bad');
@@ -118,6 +124,10 @@ async function startCam() {
     });
     video.srcObject = stream;
     await video.play();
+    // Where supported (Android Chrome), ImageCapture takes a real full-resolution still,
+    // which is much sharper than grabbing a frame from the live video.
+    try { imgCap = ('ImageCapture' in window) ? new ImageCapture(stream.getVideoTracks()[0]) : null; }
+    catch (e) { imgCap = null; }
     $('camMsg').style.display = 'none';
   } catch (e) {
     $('camMsg').style.display = 'flex';
@@ -129,16 +139,85 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden && (!t || t.readyState !== 'live')) startCam();
 });
 
+/* ---------- Easting/Northing: WGS84 lat/lon -> British National Grid (OSGB36) ----------
+   Uses Ordnance Survey's 7-parameter Helmert shift + Transverse Mercator formulae.
+   Good to roughly 2-5 m (OS's full OSTN15 grid shift isn't included), which is
+   in line with phone GPS accuracy. Returns null if the point is outside the GB grid. */
+function toBNG(latDeg, lonDeg) {
+  const rad = d => d * Math.PI / 180;
+
+  // Step 1: WGS84 lat/lon -> 3D cartesian (metres)
+  const aW = 6378137, bW = 6356752.314245, e2W = 1 - (bW * bW) / (aW * aW);
+  const phi = rad(latDeg), lam = rad(lonDeg);
+  const nuW = aW / Math.sqrt(1 - e2W * Math.sin(phi) ** 2);
+  const x1 = nuW * Math.cos(phi) * Math.cos(lam);
+  const y1 = nuW * Math.cos(phi) * Math.sin(lam);
+  const z1 = nuW * (1 - e2W) * Math.sin(phi);
+
+  // Step 2: Helmert shift WGS84 -> OSGB36
+  const tx = -446.448, ty = 125.157, tz = -542.060;
+  const s = 1 + 20.4894e-6;
+  const rx = rad(-0.1502 / 3600), ry = rad(-0.2470 / 3600), rz = rad(-0.8421 / 3600);
+  const x2 = tx + x1 * s - y1 * rz + z1 * ry;
+  const y2 = ty + x1 * rz + y1 * s - z1 * rx;
+  const z2 = tz - x1 * ry + y1 * rx + z1 * s;
+
+  // Step 3: cartesian -> lat/lon on the Airy 1830 ellipsoid (the one OSGB36 uses)
+  const a = 6377563.396, b = 6356256.909, e2 = 1 - (b * b) / (a * a);
+  const p = Math.hypot(x2, y2);
+  let ph = Math.atan2(z2, p * (1 - e2));
+  for (let i = 0; i < 10; i++) {
+    const nuI = a / Math.sqrt(1 - e2 * Math.sin(ph) ** 2);
+    ph = Math.atan2(z2 + e2 * nuI * Math.sin(ph), p);
+  }
+  const la = Math.atan2(y2, x2);
+
+  // Step 4: Transverse Mercator projection onto the National Grid
+  const F0 = 0.9996012717, ph0 = rad(49), la0 = rad(-2), E0 = 400000, N0 = -100000;
+  const n = (a - b) / (a + b);
+  const sin = Math.sin(ph), cos = Math.cos(ph), tan = Math.tan(ph);
+  const nu = a * F0 / Math.sqrt(1 - e2 * sin * sin);
+  const rho = a * F0 * (1 - e2) * Math.pow(1 - e2 * sin * sin, -1.5);
+  const eta2 = nu / rho - 1;
+  const dPh = ph - ph0, sPh = ph + ph0;
+  const M = b * F0 * (
+    (1 + n + 1.25 * n * n + 1.25 * n ** 3) * dPh
+    - (3 * n + 3 * n * n + 21 / 8 * n ** 3) * Math.sin(dPh) * Math.cos(sPh)
+    + (15 / 8 * n * n + 15 / 8 * n ** 3) * Math.sin(2 * dPh) * Math.cos(2 * sPh)
+    - 35 / 24 * n ** 3 * Math.sin(3 * dPh) * Math.cos(3 * sPh));
+  const dL = la - la0;
+  const I = M + N0;
+  const II = nu / 2 * sin * cos;
+  const III = nu / 24 * sin * cos ** 3 * (5 - tan ** 2 + 9 * eta2);
+  const IIIA = nu / 720 * sin * cos ** 5 * (61 - 58 * tan ** 2 + tan ** 4);
+  const IV = nu * cos;
+  const V = nu / 6 * cos ** 3 * (nu / rho - tan ** 2);
+  const VI = nu / 120 * cos ** 5 * (5 - 18 * tan ** 2 + tan ** 4 + 14 * eta2 - 58 * tan ** 2 * eta2);
+  const north = I + II * dL ** 2 + III * dL ** 4 + IIIA * dL ** 6;
+  const east = E0 + IV * dL + V * dL ** 3 + VI * dL ** 5;
+
+  if (east < 0 || east > 700000 || north < 0 || north > 1300000) return null;
+  return { e: east, n: north };
+}
+
 /* ---------- Stamp the GPS text onto the image and save ---------- */
 const toBlob = (c, q) => new Promise(r => c.toBlob(r, 'image/jpeg', q));
 const pad = n => String(n).padStart(2, '0');
 
-async function save(source, w, h) {
-  const now = new Date(), c = pos && pos.coords;
+async function save(source, w, h, p = pos) {   // p = GPS fix to stamp (defaults to the latest)
+  const now = new Date(), c = p && p.coords;
   const when = now.toLocaleString([], { dateStyle: 'medium', timeStyle: 'medium' });
+  // Easting/Northing (British National Grid) from the same GPS fix
+  const en = c ? toBNG(c.latitude, c.longitude) : null;
+  const enText = en ? `E ${en.e.toFixed(1)}   N ${en.n.toFixed(1)}   (BNG)` : 'E/N unavailable (outside GB grid)';
   const lines = c
-    ? [`Lat ${c.latitude.toFixed(6)}   Lon ${c.longitude.toFixed(6)}`, `±${Math.round(c.accuracy)} m   ${when}`]
+    ? [`Lat ${c.latitude.toFixed(6)}   Lon ${c.longitude.toFixed(6)}`, enText, `±${Math.round(c.accuracy)} m   ${when}`]
     : ['No GPS fix', when];
+
+  // Cap at ~16 megapixels so very large photos can't exceed browser canvas limits (iPhone Safari is strictest).
+  // Normal 12 MP phone photos are untouched.
+  const k = Math.min(1, Math.sqrt(16e6 / (w * h)));
+  w = Math.round(w * k); h = Math.round(h * k);
 
   const cv = document.createElement('canvas');
   cv.width = w; cv.height = h;
@@ -162,21 +241,49 @@ async function save(source, w, h) {
 
   const stampName = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
   const rec = {
-    blob: await toBlob(cv, 0.92),
+    blob: await toBlob(cv, 0.95),   // high JPEG quality
     thumb: await toBlob(th, 0.8),
+    w, h,                           // pixel size, shown in the gallery so you can check quality
     lat: c ? c.latitude : null, lon: c ? c.longitude : null, acc: c ? c.accuracy : null,
     time: now.getTime(),
     name: `geocam_${stampName}${c ? `_${c.latitude.toFixed(5)}_${c.longitude.toFixed(5)}` : '_nogps'}.jpg`
   };
   await tx('readwrite', s => s.add(rec));
   render();
+  return rec;
+}
+
+// Get the best image the browser can give us.
+async function grabStill() {
+  if (imgCap) {
+    try {
+      // Ask the camera for its largest still size (capped at ~16 MP so huge sensors don't run out of memory)
+      const caps = await imgCap.getPhotoCapabilities();
+      const opts = {};
+      if (caps.imageWidth && caps.imageHeight) {
+        let w = caps.imageWidth.max, h = caps.imageHeight.max;
+        const k = Math.min(1, Math.sqrt(16e6 / (w * h)));
+        opts.imageWidth = Math.round(w * k); opts.imageHeight = Math.round(h * k);
+      }
+      const bmp = await createImageBitmap(await imgCap.takePhoto(opts));
+      return { src: bmp, w: bmp.width, h: bmp.height, how: 'still' };
+    } catch (e) { /* not supported or failed: use the video frame below */ }
+  }
+  // Fallback (iPhone Safari): a frame from the live video. The browser limits its resolution.
+  return { src: video, w: video.videoWidth, h: video.videoHeight, how: 'video' };
 }
 
 $('shutter').onclick = async () => {
   if (!video.videoWidth) return;
   const b = $('shutter'); b.disabled = true;
   video.classList.remove('shot'); void video.offsetWidth; video.classList.add('shot');
-  await save(video, video.videoWidth, video.videoHeight);
+  const p = pos;                       // lock in the GPS fix from the moment of the tap
+  const still = await grabStill();
+  const rec = await save(still.src, still.w, still.h, p);
+  // Tell the user what they got, so quality is never a mystery
+  $('hint').textContent = still.how === 'still'
+    ? `Full-resolution photo saved (${rec.w}×${rec.h}).`
+    : `Saved from live video (${rec.w}×${rec.h}). For full quality use “Full-quality camera”.`;
   b.disabled = false;
 };
 
@@ -202,6 +309,7 @@ async function share(r) {
 }
 async function render() {
   const list = (await tx('readonly', s => s.getAll())).reverse();
+  photos = list;
   urls.forEach(URL.revokeObjectURL); urls = [];
   $('count').textContent = list.length;
   $('toPhotos').textContent = `Photos (${list.length}) ↓`;
@@ -209,7 +317,7 @@ async function render() {
   for (const r of list) {
     const u = URL.createObjectURL(r.thumb); urls.push(u);
     const d = document.createElement('div'); d.className = 'item';
-    d.innerHTML = `<img src="${u}" alt="Photo"><div class="m">${r.lat == null ? 'No GPS' : r.lat.toFixed(5) + ', ' + r.lon.toFixed(5)}</div><div class="r"></div>`;
+    d.innerHTML = `<img src="${u}" alt="Photo"><div class="m">${r.lat == null ? 'No GPS' : r.lat.toFixed(5) + ', ' + r.lon.toFixed(5)}${r.w ? `<br>${r.w}×${r.h} · ${(r.blob.size / 1048576).toFixed(1)} MB` : ''}</div><div class="r"></div>`;
     d.querySelector('img').onclick = () => {
       const v = $('view'), vu = URL.createObjectURL(r.blob);
       v.firstElementChild.src = vu; v.style.display = 'flex';
@@ -226,6 +334,15 @@ async function render() {
 $('dlAll').onclick = async () => {
   const list = await tx('readonly', s => s.getAll());
   for (const r of list) { download(r); await new Promise(res => setTimeout(res, 500)); }
+};
+
+/* ---------- Share all: one share sheet with every photo (iPhone: "Save Images" puts them in Photos) ---------- */
+$('shareAll').onclick = async () => {
+  if (!photos.length) return alert('No photos to share yet.');
+  const files = photos.map(r => new File([r.blob], r.name, { type: 'image/jpeg' }));
+  if (!navigator.canShare || !navigator.canShare({ files }))
+    return alert('Sharing multiple photos isn’t supported on this browser. Use Download all instead.');
+  try { await navigator.share({ files }); } catch (e) {}   // errors here just mean the share was cancelled
 };
 
 /* ---------- Scroll buttons: the page scrolls, so make that obvious ---------- */
