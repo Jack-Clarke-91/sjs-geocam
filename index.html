@@ -11,8 +11,6 @@
 <title>GeoCam</title>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
-
 :root{
   --bg:#f1f4f6;
   --card:#fff;
@@ -37,7 +35,8 @@ html,body{
   color:var(--ink);
   font:16px/1.45 Calibri, "Segoe UI", sans-serif;
 }
-  header{
+
+header{
   background-color:#151b21;
   background-image:
     linear-gradient(rgba(10,15,20,.35) 1px, transparent 1px),
@@ -47,6 +46,7 @@ html,body{
   padding:calc(14px + env(safe-area-inset-top)) 16px 14px;
   border-bottom:1px solid #252c33;
 }
+
 header h1{
   font-family:Calibri, "Segoe UI", sans-serif;
   font-size:27px;
@@ -58,9 +58,7 @@ header h1{
   display:flex;
   align-items:baseline;
   justify-content:flex-start;
-  gap:0;
-  padding-left:-1;
-  padding-right:6;
+  gap:12px;
   line-height:1;
 }
 
@@ -70,8 +68,6 @@ header h1 strong{
   color:#26B3BE;
 }
 
-
-
 header h1 span{
   color:#5d6b76;
   font-size:20px;
@@ -80,6 +76,7 @@ header h1 span{
   line-height:1;
   align-self:baseline;
 }
+
 main{
   max-width:720px;
   margin:0 auto;
@@ -589,7 +586,7 @@ main{
 <body>
 
 <header>
-  <h1><strong>SJS</strong><i aria-hidden="true"></i><span>GEOCAM</span></h1>
+  <h1><strong>SJS</strong><span>GEOCAM</span></h1>
 </header>
 
 <main>
@@ -795,7 +792,6 @@ function setGps(state, status, c) {
 
   const en = c && toBNG(c.latitude, c.longitude);
 
-  // Display coordinates to two decimal places.
   $('gpsE').textContent = en ? en.e.toFixed(2) : '–';
   $('gpsN').textContent = en ? en.n.toFixed(2) : '–';
 }
@@ -809,10 +805,8 @@ let roadRequestActive = false;
 async function updateRoadName(lat, lon) {
   const now = Date.now();
 
-  // Prevent overlapping requests and respect the service's request limit.
   if (roadRequestActive || now - lastRoadLookup < 1000) return;
 
-  // While stationary, refresh after 30 seconds; while moving, refresh after 50 m.
   if (lastRoadPosition) {
     const latMetres = (lat - lastRoadPosition.lat) * 111320;
     const lonMetres = (lon - lastRoadPosition.lon) * 111320 * Math.cos(lat * Math.PI / 180);
@@ -826,7 +820,6 @@ async function updateRoadName(lat, lon) {
   roadRequestActive = true;
 
   try {
-    // Ask OpenStreetMap for the nearest mapped address.
     const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&zoom=18&addressdetails=1`;
 
     const response = await fetch(url, {
@@ -840,7 +833,6 @@ async function updateRoadName(lat, lon) {
     const data = await response.json();
     const address = data.address || {};
 
-    // Find the most useful road name returned by OpenStreetMap.
     const road = address.road ||
       address.pedestrian ||
       address.residential ||
@@ -856,8 +848,6 @@ async function updateRoadName(lat, lon) {
 
   } catch (error) {
     $('roadName').textContent = 'Road lookup unavailable';
-
-    // Allow a fresh attempt if the request failed.
     lastRoadLookup = 0;
     lastRoadPosition = null;
 
@@ -872,7 +862,6 @@ let lastWeatherRequest = 0;
 let lastWeatherPosition = null;
 let weatherRequestActive = false;
 
-// Convert forecast codes into simple weather icons and descriptions.
 function weatherSymbol(code) {
   if (code === 0) return ['☀️', 'Clear'];
   if (code === 1 || code === 2) return ['🌤️', 'Partly cloudy'];
@@ -887,11 +876,9 @@ function weatherSymbol(code) {
   return ['🌥️', 'Mixed'];
 }
 
-// Fetch a forecast for the current GPS position.
 async function updateWeather(lat, lon) {
   const now = Date.now();
 
-  // Refresh every 30 minutes, or after moving more than 5 km.
   if (weatherRequestActive) return;
 
   if (lastWeatherPosition) {
@@ -922,7 +909,6 @@ async function updateWeather(lat, lon) {
       throw new Error('Forecast data was incomplete');
     }
 
-    // Start with the next forecast hour and show four hourly periods.
     const currentTime = Date.now();
 
     let startIndex = hourly.time.findIndex(t => new Date(t).getTime() >= currentTime);
@@ -954,8 +940,6 @@ async function updateWeather(lat, lon) {
 
   } catch (error) {
     $('weatherList').innerHTML = '<div class="weather-message">Forecast unavailable</div>';
-
-    // Allow another attempt after ten minutes if the service is temporarily unavailable.
     lastWeatherRequest = Date.now() - 20 * 60 * 1000;
 
   } finally {
@@ -973,7 +957,6 @@ function startGPS() {
   navigator.geolocation.watchPosition(p => {
     pos = p;
 
-    // Update the road name and local weather using the latest GPS coordinates.
     updateRoadName(p.coords.latitude, p.coords.longitude);
     updateWeather(p.coords.latitude, p.coords.longitude);
 
@@ -1043,9 +1026,23 @@ function showLive(on) {
   $('takeHint').style.display = on ? 'none' : '';
 }
 
+// Stop the camera and release its hardware resources.
+function stopCam() {
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+    stream = null;
+  }
+
+  imgCap = null;
+  $('video').srcObject = null;
+}
+
 async function startCam() {
+  // Do not start the camera while the page is in the background.
+  if (document.hidden) return;
+
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
+    const newStream = await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: { ideal: 'environment' },
         width: { ideal: 3840 },
@@ -1054,27 +1051,48 @@ async function startCam() {
       audio: false
     });
 
+    // If the camera request finished after the page was hidden, stop it.
+    if (document.hidden) {
+      newStream.getTracks().forEach(track => track.stop());
+      return;
+    }
+
+    stream = newStream;
+
     $('video').srcObject = stream;
     await $('video').play();
+
+    // Check again in case the page was hidden while the video was starting.
+    if (document.hidden) {
+      stopCam();
+      showLive(false);
+      return;
+    }
 
     imgCap = new ImageCapture(stream.getVideoTracks()[0]);
 
     showLive(true);
 
   } catch (e) {
+    stopCam();
     showLive(false);
     toast('Live camera unavailable, so the camera app will be used instead.');
   }
 }
 
-// Restart camera if Android pauses it in the background.
+// Stop the camera whenever GeoCam goes into the background.
 document.addEventListener('visibilitychange', () => {
-  const t = stream && stream.getVideoTracks()[0];
-
-  if (!document.hidden && LIVE && !$('live').hidden && (!t || t.readyState !== 'live')) {
-    startCam();
+  if (document.hidden && LIVE) {
+    stopCam();
+    showLive(false);
+  } else if (!document.hidden && LIVE) {
+    showLive(false);
+    toast('Camera stopped. Refresh GeoCam to restart live view.');
   }
 });
+
+// Also stop the camera when the page is being left.
+window.addEventListener('pagehide', stopCam);
 
 /* ---------- Capture full-resolution photo ---------- */
 
@@ -1099,7 +1117,6 @@ async function grabStill() {
   } catch (e) {
     const v = $('video');
 
-    // Use a video frame if full-resolution capture fails.
     return { src: v, w: v.videoWidth, h: v.videoHeight };
   }
 }
@@ -1116,7 +1133,6 @@ $('shutter').onclick = async () => {
   void v.offsetWidth;
   v.classList.add('shot');
 
-  // Lock GPS position at the moment of capture.
   const p = pos;
 
   try {
@@ -1145,7 +1161,6 @@ async function save(source, w, h, p) {
 
   const en = c ? toBNG(c.latitude, c.longitude) : null;
 
-  // Keep BNG coordinates, but do not bake latitude/longitude into the image.
   const enText = en
     ? `E ${en.e.toFixed(2)}   N ${en.n.toFixed(2)}   (BNG)`
     : 'E/N unavailable (outside GB grid)';
@@ -1250,7 +1265,6 @@ async function render() {
     const u = URL.createObjectURL(r.thumb);
     urls.push(u);
 
-    // Show BNG coordinates in the gallery, never latitude/longitude.
     const place = r.e != null
       ? `E ${r.e.toFixed(2)} · N ${r.n.toFixed(2)}`
       : 'No BNG coordinates available';
