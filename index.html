@@ -17,37 +17,50 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 
+header{
+  background-color:#151b21; /* Dark engineering-style background */
+  background-image:
+    linear-gradient(rgba(10,15,20,.35) 1px, transparent 1px), /* Horizontal grid */
+    linear-gradient(90deg, rgba(10,15,20,.35) 1px, transparent 1px); /* Vertical grid */
+  background-size:20px 20px; /* Grid spacing */
+  color:#e8e7e1; /* Off-white text */
+  padding:calc(10px + env(safe-area-inset-top)) 16px 10px; /* Header spacing */
+  border-bottom:1px solid #252c33; /* Subtle bottom border */
+}
 
 header{
-  background-color:#151b21;
+  background-color:#151b21; /* Dark engineering-style background */
   background-image:
-    linear-gradient(rgba(10,15,20,.35) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(10,15,20,.35) 1px, transparent 1px);
-  background-size:20px 20px;
-  color:#e8e7e1;
-  padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
-  border-bottom:1px solid #252c33;
+    linear-gradient(rgba(10,15,20,.35) 1px, transparent 1px), /* Horizontal grid */
+    linear-gradient(90deg, rgba(10,15,20,.35) 1px, transparent 1px); /* Vertical grid */
+  background-size:20px 20px; /* Grid spacing */
+  color:#e8e7e1; /* Off-white text */
+  padding:calc(10px + env(safe-area-inset-top)) 16px 10px; /* Header spacing */
+  border-bottom:1px solid #252c33; /* Subtle bottom border */
 }
 
 header h1{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:23px; /* SJS increased from 21px */
-  font-weight:500;
-  letter-spacing:1.65px;
-  color:#26B3BE;
-  max-width:720px;
-  margin:0 auto;
-  display:flex;
-  align-items:baseline; /* Aligns the text bottoms */
-  justify-content:flex-start;
-  gap:10px;
+  font-family:'IBM Plex Mono',monospace; /* Technical typeface */
+  font-size:23px; /* SJS text size */
+  font-weight:500; /* Medium company lettering */
+  letter-spacing:1.65px; /* Spacing between letters */
+  color:#26B3BE; /* SJS turquoise */
+  max-width:720px; /* Match main content width */
+  margin:0 auto; /* Centre header content */
+  display:flex; /* Place company and product side by side */
+  align-items:baseline; /* Align text baselines */
+  justify-content:flex-start; /* Keep branding on the left */
+  gap:16px; /* Space around divider */
+  padding-left:5px; /* Move SJS slightly right */
 }
 
 header h1 span{
-  color:#d9823b;
-  font-size:16px; /* GEOCAM increased from 16px */
-  font-weight:500;
-  letter-spacing:1.65px;
+  color:#d9823b; /* GEOCAM orange */
+  font-size:16px; /* Maintain existing product text size */
+  font-weight:400; /* Lighter product lettering */
+  letter-spacing:1.65px; /* Match SJS letter spacing */
+  border-left:1px solid #59636b; /* Muted vertical divider */
+  padding-left:16px; /* Space between divider and GEOCAM */
 }
 
 main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
