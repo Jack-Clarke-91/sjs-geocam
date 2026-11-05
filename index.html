@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -43,7 +44,7 @@ header{
     linear-gradient(90deg, rgba(10,15,20,.35) 1px, transparent 1px);
   background-size:20px 20px;
   color:#e8e7e1;
-  padding:calc(14px + env(safe-area-inset-top)) 16px 14px;
+  padding:calc(14px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 14px calc(16px + env(safe-area-inset-left));
   border-bottom:1px solid #252c33;
 }
 
@@ -53,12 +54,12 @@ header h1{
   font-weight:700;
   letter-spacing:1px;
   color:#26B3BE;
-  max-width:720px;
+  width:100%;
+  max-width:688px;
   margin:0 auto;
   display:flex;
   align-items:baseline;
-  justify-content:flex-start;
-  gap:0;
+  justify-content:space-between;
   line-height:1;
 }
 
@@ -75,9 +76,8 @@ header h1 span{
   letter-spacing:0.2px;
   line-height:1;
   align-self:baseline;
-  margin-left:auto;
-  margin-right:6px;
 }
+
 main{
   max-width:720px;
   margin:0 auto;
@@ -453,6 +453,15 @@ main{
 
 /* Compact mobile layout */
 @media (max-width:600px){
+  header{
+    padding-left:10px;
+    padding-right:10px;
+  }
+
+  header h1{
+    max-width:none;
+  }
+
   main{
     padding:8px 10px calc(20px + env(safe-area-inset-bottom));
   }
