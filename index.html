@@ -106,8 +106,8 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
   margin:0 auto;
   display:flex;
   flex-direction:column;
-  height:100vh;            /* fallback for older browsers */
-  height:100dvh;           /* dynamic viewport – no hidden footer on mobile */
+  height:100vh;
+  height:100dvh;
   max-height:100vh;
   max-height:100dvh;
   overflow:hidden;
@@ -1345,9 +1345,15 @@ function fieldLabel(field) {
   return wrap?.querySelector(':scope > label')?.textContent.trim() || field.name;
 }
 
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 function serializeForm(form) {
-  const out = [];
-  const seen = new Set();
+  const sections = [];
 
   for (const group of form.querySelectorAll('.rf-group')) {
     const legend = group.querySelector('.rf-legend')?.textContent.trim() || '';
@@ -1355,21 +1361,22 @@ function serializeForm(form) {
 
     // Pipe / face cards first
     for (const details of group.querySelectorAll('.pipe-card')) {
-      const heading = details.querySelector('summary').childNodes[0]?.textContent?.trim() || '';
+      const summaryText = details.querySelector('summary').childNodes[0]?.textContent?.trim() || '';
       const sub = [];
       for (const field of details.querySelectorAll('input')) {
         if (!field.value) continue;
         const lbl = field.closest('div')?.querySelector(':scope > label')?.textContent.trim() || field.name;
-        sub.push(`  ${lbl}: ${field.value}`);
+        sub.push(`<b>${escapeHTML(lbl)}:</b> ${escapeHTML(field.value)}`);
       }
       if (sub.length) {
-        lines.push(heading);
+        lines.push(`<b>▸ ${escapeHTML(summaryText)}</b>`);
         lines.push(...sub);
         lines.push('');
       }
     }
 
     // Ordinary fields (skip anything inside a pipe card)
+    const seen = new Set();
     for (const field of group.querySelectorAll('input, textarea, select')) {
       if (field.closest('.pipe-card')) continue;
       if (field.type === 'checkbox' || field.type === 'radio') {
@@ -1378,19 +1385,24 @@ function serializeForm(form) {
         const checked = Array.from(
           group.querySelectorAll(`input[name="${field.name}"]:checked`)
         ).map(c => c.value);
-        if (checked.length) lines.push(`${fieldLabel(field)}: ${checked.join(', ')}`);
+        if (checked.length) {
+          lines.push(`<b>${escapeHTML(fieldLabel(field))}:</b> ${escapeHTML(checked.join(', '))}`);
+        }
       } else if (field.value) {
-        lines.push(`${fieldLabel(field)}: ${field.value}`);
+        lines.push(`<b>${escapeHTML(fieldLabel(field))}:</b> ${escapeHTML(field.value)}`);
       }
     }
 
+    // Trim trailing blank lines from the pipe section
+    while (lines.length && lines[lines.length - 1] === '') lines.pop();
+
     if (lines.length) {
-      if (legend) out.push('', `[${legend}]`);
-      out.push(...lines);
+      const heading = legend ? `<b>━━ ${escapeHTML(legend)} ━━</b>` : '';
+      sections.push((heading ? heading + '\n' : '') + lines.join('\n'));
     }
   }
 
-  return out.join('\n').trim();
+  return sections.join('\n\n');
 }
 
 /* ---- Draft persistence ---- */
@@ -1445,27 +1457,37 @@ function clearDraft(type) {
   try { localStorage.removeItem('geocamDraft_' + type); } catch {}
 }
 
-/* ---- Telegram text sender (handles >4096-char messages) ---- */
+/* ---- Telegram text sender (HTML formatted, handles >4096-char messages) ---- */
 
-async function sendTelegramText(text) {
+async function sendTelegramText(html) {
   const c = cfg();
   if (!c.token || !c.chat) { toast('Set up upload settings first'); return false; }
 
   const MAX = 3800;
   const chunks = [];
-  if (text.length <= MAX) {
-    chunks.push(text);
-  } else {
-    let cur = '';
-    for (const line of text.split('\n')) {
-      if ((cur + '\n' + line).length > MAX) { chunks.push(cur); cur = line; }
-      else cur = cur ? cur + '\n' + line : line;
+  let cur = '';
+
+  for (const line of html.split('\n')) {
+    // Overly long single line (e.g. a giant remarks field): strip tags and split safely
+    if (line.length > MAX - 100) {
+      if (cur) { chunks.push(cur); cur = ''; }
+      const plain = line.replace(/<[^>]+>/g, '');
+      for (let i = 0; i < plain.length; i += MAX - 100) {
+        chunks.push(plain.slice(i, i + MAX - 100));
+      }
+      continue;
     }
-    if (cur) chunks.push(cur);
+    if ((cur + '\n' + line).length > MAX) {
+      chunks.push(cur);
+      cur = line;
+    } else {
+      cur = cur ? cur + '\n' + line : line;
+    }
   }
+  if (cur) chunks.push(cur);
 
   for (let i = 0; i < chunks.length; i++) {
-    const header = chunks.length > 1 ? `(${i + 1}/${chunks.length})\n` : '';
+    const header = chunks.length > 1 ? `<i>(${i + 1}/${chunks.length})</i>\n` : '';
     try {
       const resp = await fetch(`https://api.telegram.org/bot${c.token}/sendMessage`, {
         method: 'POST',
@@ -1473,6 +1495,7 @@ async function sendTelegramText(text) {
         body: JSON.stringify({
           chat_id: c.chat,
           text: header + chunks[i],
+          parse_mode: 'HTML',
           disable_web_page_preview: true
         })
       });
@@ -1543,10 +1566,13 @@ document.addEventListener('input', e => {
 $('reportSend').onclick = async () => {
   if (!currentReport) return;
   const form = document.querySelector(`.report-form[data-report="${currentReport}"]`);
-  const head = currentReport === 'manhole' ? '=== MANHOLE REPORT ===' : '=== CHAMBER REPORT ===';
-  const who  = cfg().name ? cfg().name + ' · ' : '';
   const body = serializeForm(form);
-  const text = `${head}\n${who}${new Date().toLocaleString()}\n\n${body || '(empty)'}`;
+  if (!body) { toast('Fill in some fields first'); return; }
+
+  const title = currentReport === 'manhole' ? 'MANHOLE REPORT' : 'CHAMBER REPORT';
+  const who   = cfg().name ? cfg().name + ' · ' : '';
+  const stamp = new Date().toLocaleString();
+  const text  = `<b>${title}</b>\n<i>${escapeHTML(who + stamp)}</i>\n\n${body}`;
 
   const btn = $('reportSend');
   btn.disabled = true; btn.textContent = 'Sending…';
