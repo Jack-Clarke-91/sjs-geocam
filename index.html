@@ -102,7 +102,6 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 .report-btn{display:flex;align-items:center;gap:10px;text-align:left;padding:14px 12px;font:inherit;color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:12px;cursor:pointer}
 .report-btn:active{background:#f0f4f6}
 .report-btn b{display:block;font-size:14px}
-.report-btn small{display:block;font-size:11px;color:var(--mut)}
 .report-ico{font-size:26px;color:var(--acc);line-height:1}
 
 /* Report tile */
@@ -284,11 +283,11 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
     <div class="report-buttons">
       <button type="button" class="report-btn" data-report="manhole">
         <span class="report-ico">◉</span>
-        <span><b>Manhole Report</b><small>Chamber survey card</small></span>
+        <span><b>Start New Manhole Report</b></span>
       </button>
       <button type="button" class="report-btn" data-report="chamber">
         <span class="report-ico">◎</span>
-        <span><b>Chamber Report</b><small>Utility chamber card</small></span>
+        <span><b>Start New Chamber Report</b></span>
       </button>
     </div>
 
@@ -556,8 +555,6 @@ function toast(msg, sticky) {
 /* ---------- Storage: IndexedDB ---------- */
 function openDB() {
   return new Promise((res, rej) => {
-    // Bumped to version 2 to add the reports store. Guarded with contains()
-    // so existing photos are preserved and re-running is safe.
     const r = indexedDB.open('geocam', 2);
 
     r.onupgradeneeded = () => {
@@ -599,7 +596,6 @@ function updateLocationDisplay() {
 }
 
 /* ---------- British National Grid conversion ---------- */
-/* WGS84 lat/lon -> OSGB36 using Helmert transformation and Transverse Mercator */
 
 function toBNG(latDeg, lonDeg) {
   const rad = d => d * Math.PI / 180;
@@ -1217,7 +1213,6 @@ async function uploadPending() {
   const c = cfg();
 
   try {
-    // Photos first
     try {
       const all = await tx('readonly', s => s.getAll());
       for (const r of all.filter(r => r.up === false)) {
@@ -1243,7 +1238,6 @@ async function uploadPending() {
       }
     } catch {}
 
-    // Then pending reports
     if (!uploadPaused) {
       try {
         const pendingReports = (await txReports('readonly', s => s.getAll())).filter(r => !r.up);
@@ -1733,7 +1727,6 @@ $('reportSend').onclick = async () => {
     (loc ? `<b>📍 ${escapeHTML(loc)}</b>\n` : '') +
     `<i>${escapeHTML(who + stamp)}</i>\n\n${body}`;
 
-  // Grab a human-friendly reference for the tile
   const cardNo = (body.match(/<b>Card No:<\/b> ([^<\n]+)/) || [])[1] || '';
   const refNo  = (body.match(/<b>MH \/ Pit \/ Gulley Ref:<\/b> ([^<\n]+)/) || [])[1] || '';
   const ref    = (cardNo || refNo || '').trim();
