@@ -34,8 +34,15 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 .gps-coords{min-width:0;border-left:1px solid var(--line);padding-left:10px}
 .en{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:3px;margin:0}
 .en small{display:block;font-size:11px;color:var(--mut)}
-.en b{font:600 14px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.7px;white-space:nowrap}
+.en b{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;font-weight:600;line-height:1.2;letter-spacing:-.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .map-credit{margin:18px 0 0;text-align:center;font-size:10px;color:var(--mut)}
+
+/* Location bar */
+.location-bar{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.location-bar .loc-text{min-width:0;flex:1}
+.location-bar small{display:block;font-size:10px;color:var(--mut);letter-spacing:.25px}
+.location-bar b{display:block;font-size:14px;font-weight:600;color:var(--ink);margin-top:2px;overflow-wrap:anywhere}
+.location-bar .btn{padding:8px 12px;font-size:13px;white-space:nowrap;flex:none}
 
 /* Upload status + settings. 16px inputs stop iPhone zooming in when typing */
 .up{margin:6px 0 0;font-size:13px;font-weight:600;text-align:center;color:var(--mut);line-height:1.25}
@@ -162,7 +169,9 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
   .gps-coords{padding-left:8px}
   .en{column-gap:2px;margin:0}
   .en small{font-size:10px}
-  .en b{font-size:13px;letter-spacing:-.7px}
+  .en b{font-size:13px}
+  .location-bar{padding:8px 10px;margin-top:8px}
+  .location-bar .btn{padding:7px 10px;font-size:12px}
   .live{margin-top:8px}
   .cam{aspect-ratio:auto;height:55vh;max-height:none;min-height:300px;border-radius:10px}
   .shutter{width:62px;height:62px;border-width:4px;margin:7px auto 2px}
@@ -215,6 +224,15 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
     </div>
   </section>
 
+  <!-- Site location (job name) -->
+  <section class="location-bar" id="locationBar">
+    <div class="loc-text">
+      <small>SITE LOCATION</small>
+      <b id="locName">Not set</b>
+    </div>
+    <button type="button" class="btn" id="newLocBtn">Start New Location</button>
+  </section>
+
   <!-- Upload status + settings (Telegram) -->
   <div class="up" id="upStatus"></div>
 
@@ -252,7 +270,7 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 
   <!-- Survey reports (sits naturally below whichever camera UI is active) -->
   <section class="reports">
-    <h2>Survey Reports</h2>
+    <h2>Survey Reports (<span id="repCount">0</span>)</h2>
     <div class="report-buttons">
       <button type="button" class="report-btn" data-report="manhole">
         <span class="report-ico">◉</span>
@@ -540,6 +558,26 @@ function tx(mode, fn) {
     t.oncomplete = () => res(req.result);
     t.onerror = () => rej(t.error);
   });
+}
+
+/* ---------- Site location (job name) ---------- */
+
+const getLocation = () => { try { return localStorage.getItem('geocamLocation') || ''; } catch { return ''; } };
+const setLocation = (name) => { try { localStorage.setItem('geocamLocation', name); } catch {} };
+
+function updateLocationDisplay() {
+  const loc = getLocation();
+  $('locName').textContent = loc || 'Not set';
+  $('newLocBtn').textContent = loc ? 'Start New Location' : 'Set Location';
+}
+
+/* ---------- Reports counter ---------- */
+
+const getReportCount = () => { try { return parseInt(localStorage.getItem('geocamReportCount') || '0', 10) || 0; } catch { return 0; } };
+const setReportCount = (n) => { try { localStorage.setItem('geocamReportCount', String(n)); } catch {} };
+
+function updateReportCount() {
+  $('repCount').textContent = getReportCount();
 }
 
 /* ---------- British National Grid conversion ---------- */
@@ -1174,11 +1212,14 @@ function uploadFields() {
   return { up: false, by: cfg().name || '', seq };   // up:false = waiting to upload
 }
 
-const caption = r =>
-  `${r.by || 'GC'}-${String(r.seq).padStart(3, '0')}\n` +
-  (r.e != null ? `E ${r.e.toFixed(2)}  N ${r.n.toFixed(2)}` : 'No BNG coordinates') +
-  (r.acc != null ? `  (±${Math.round(r.acc)} m)` : '') +
-  `\nTaken ${new Date(r.time).toLocaleString()}`;
+const caption = r => {
+  const loc = getLocation();
+  return (loc ? `📍 ${loc}\n` : '') +
+    `${r.by || 'GC'}-${String(r.seq).padStart(3, '0')}\n` +
+    (r.e != null ? `E ${r.e.toFixed(2)}  N ${r.n.toFixed(2)}` : 'No BNG coordinates') +
+    (r.acc != null ? `  (±${Math.round(r.acc)} m)` : '') +
+    `\nTaken ${new Date(r.time).toLocaleString()}`;
+};
 
 async function uploadPending() {
   if (uploading || uploadPaused || !db || !cfgOk() || !navigator.onLine) return;
@@ -1457,6 +1498,17 @@ function clearDraft(type) {
   try { localStorage.removeItem('geocamDraft_' + type); } catch {}
 }
 
+function hasUnsavedDrafts() {
+  try {
+    return ['manhole', 'chamber'].some(t => {
+      const d = localStorage.getItem('geocamDraft_' + t);
+      if (!d) return false;
+      const obj = JSON.parse(d);
+      return obj && Object.keys(obj).length > 0;
+    });
+  } catch { return false; }
+}
+
 /* ---- Telegram text sender (HTML formatted, handles >4096-char messages) ---- */
 
 async function sendTelegramText(html) {
@@ -1570,9 +1622,12 @@ $('reportSend').onclick = async () => {
   if (!body) { toast('Fill in some fields first'); return; }
 
   const title = currentReport === 'manhole' ? 'MANHOLE REPORT' : 'CHAMBER REPORT';
+  const loc   = getLocation();
   const who   = cfg().name ? cfg().name + ' · ' : '';
   const stamp = new Date().toLocaleString();
-  const text  = `<b>${title}</b>\n<i>${escapeHTML(who + stamp)}</i>\n\n${body}`;
+  const text  = `<b>${title}</b>\n` +
+    (loc ? `<b>📍 ${escapeHTML(loc)}</b>\n` : '') +
+    `<i>${escapeHTML(who + stamp)}</i>\n\n${body}`;
 
   const btn = $('reportSend');
   btn.disabled = true; btn.textContent = 'Sending…';
@@ -1580,6 +1635,8 @@ $('reportSend').onclick = async () => {
   try {
     if (await sendTelegramText(text)) {
       toast('Report sent ✓');
+      setReportCount(getReportCount() + 1);
+      updateReportCount();
       form.reset();
       form.querySelectorAll('label.chip-on').forEach(l => l.classList.remove('chip-on'));
       form.querySelectorAll('.pipe-card').forEach(updatePipeSummary);
@@ -1610,6 +1667,43 @@ $('reportClear').onclick = () => {
   toast('Report cleared');
 };
 
+/* ---- Start New Location ---- */
+
+async function startNewLocation() {
+  const unsentPhotos = photos.filter(r => r.up === false).length;
+  const drafts = hasUnsavedDrafts();
+
+  const warnings = [];
+  if (unsentPhotos) warnings.push(`${unsentPhotos} unsent photo${unsentPhotos > 1 ? 's' : ''}`);
+  if (drafts) warnings.push('unsent report draft(s)');
+
+  let msg = 'Start a new location?';
+  if (warnings.length) {
+    msg += '\n\n⚠ ' + warnings.join(' and ') + ' will be permanently wiped.';
+  }
+  msg += '\n\nAll photos and report drafts on this device will be cleared. Photos and reports already sent to Telegram are safe.\n\nContinue?';
+
+  if (!confirm(msg)) return;
+
+  const loc = prompt('Site Location / Road Name for this job:', getLocation());
+  if (loc === null) return;               // user cancelled the prompt
+  if (!loc.trim()) { toast('Location name required'); return; }
+
+  await tx('readwrite', s => s.clear()); // wipe all photos
+  clearDraft('manhole');
+  clearDraft('chamber');
+  try { localStorage.removeItem('geocamSeq'); } catch {}
+  setReportCount(0);
+  setLocation(loc.trim());
+
+  updateLocationDisplay();
+  updateReportCount();
+  render();
+  toast('New location: ' + loc.trim());
+}
+
+$('newLocBtn').onclick = startNewLocation;
+
 /* ---------- Start application ---------- */
 
 (async () => {
@@ -1625,8 +1719,10 @@ $('reportClear').onclick = () => {
 
   if (db) render();
 
-  loadCfgForm();    // fill in the upload settings form
-  uploadPending();  // send anything left over from last time
+  loadCfgForm();          // fill in the upload settings form
+  uploadPending();        // send anything left over from last time
+  updateLocationDisplay();
+  updateReportCount();
 
   startGPS();
 
