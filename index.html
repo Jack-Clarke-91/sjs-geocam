@@ -13,6 +13,7 @@
 <style>
 :root{--bg:#f1f4f6;--card:#fff;--ink:#14212b;--mut:#5d6b76;--line:#d9e0e5;--acc:#d9480f;--acc2:#a83a0a;--ok:#1b7a4b;--warn:#b26a00;--bad:#c62828}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none !important}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Calibri,"Segoe UI",sans-serif}
 header{background-color:#151b21;background-image:linear-gradient(rgba(10,15,20,.35) 1px,transparent 1px),linear-gradient(90deg,rgba(10,15,20,.35) 1px,transparent 1px);background-size:20px 20px;color:#e8e7e1;padding:calc(14px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 14px calc(16px + env(safe-area-inset-left));border-bottom:1px solid #252c33}
 header h1{font-family:Calibri,"Segoe UI",sans-serif;font-size:27px;font-weight:700;letter-spacing:1px;color:#26B3BE;width:100%;max-width:688px;margin:0 auto;padding:0 12px;display:flex;align-items:baseline;justify-content:space-between;line-height:1}
@@ -103,6 +104,12 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 .report-btn b{display:block;font-size:14px}
 .report-btn small{display:block;font-size:11px;color:var(--mut)}
 .report-ico{font-size:26px;color:var(--acc);line-height:1}
+
+/* Report tile */
+.rep-tile{padding:10px 10px 6px}
+.rep-type{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--acc);text-transform:uppercase;margin-bottom:4px}
+.rep-ref{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px;overflow-wrap:anywhere}
+.rep-tile .meta{padding:0;margin-bottom:4px}
 
 .report-overlay{position:fixed;inset:0;background:rgba(20,33,43,.4);z-index:30;display:flex;overflow:hidden}
 .report-overlay[hidden]{display:none}
@@ -271,7 +278,7 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
   <p class="hint" id="takeHint">Opens your camera. Take the photo, then confirm it (“Use Photo” on iPhone, ✓ on Android).</p>
   <input type="file" id="cam" accept="image/*" capture="environment" hidden>
 
-  <!-- Survey reports (sits naturally below whichever camera UI is active) -->
+  <!-- Survey reports -->
   <section class="reports">
     <h2>Survey Reports (<span id="repCount">0</span>)</h2>
     <div class="report-buttons">
@@ -284,6 +291,13 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
         <span><b>Chamber Report</b><small>Utility chamber card</small></span>
       </button>
     </div>
+
+    <div class="tools" id="repTools" hidden style="margin-top:12px;justify-content:flex-end">
+      <button class="btn" id="dlAllReports">Download all</button>
+      <button class="btn link" id="delAllReports">Delete all</button>
+    </div>
+    <div class="empty" id="repEmpty" style="margin-top:12px">No reports yet. Tap a report type above to start one.</div>
+    <div class="grid" id="repGrid" style="margin-top:12px"></div>
   </section>
 
   <!-- Photo controls -->
@@ -516,7 +530,7 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 <script>
 const $ = id => document.getElementById(id);
 
-let db, pos = null, tapPos = null, photos = [], urls = [], stream = null, imgCap = null;
+let db, pos = null, tapPos = null, photos = [], reports = [], urls = [], stream = null, imgCap = null;
 
 // Device detection
 const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -542,10 +556,18 @@ function toast(msg, sticky) {
 /* ---------- Storage: IndexedDB ---------- */
 function openDB() {
   return new Promise((res, rej) => {
-    const r = indexedDB.open('geocam', 1);
+    // Bumped to version 2 to add the reports store. Guarded with contains()
+    // so existing photos are preserved and re-running is safe.
+    const r = indexedDB.open('geocam', 2);
 
     r.onupgradeneeded = () => {
-      r.result.createObjectStore('photos', { keyPath: 'id', autoIncrement: true });
+      const d = r.result;
+      if (!d.objectStoreNames.contains('photos')) {
+        d.createObjectStore('photos', { keyPath: 'id', autoIncrement: true });
+      }
+      if (!d.objectStoreNames.contains('reports')) {
+        d.createObjectStore('reports', { keyPath: 'id', autoIncrement: true });
+      }
     };
 
     r.onsuccess = () => res(r.result);
@@ -553,15 +575,17 @@ function openDB() {
   });
 }
 
-function tx(mode, fn) {
+function txStore(storeName, mode, fn) {
   return new Promise((res, rej) => {
-    const t = db.transaction('photos', mode);
-    const req = fn(t.objectStore('photos'));
-
+    const t = db.transaction(storeName, mode);
+    const req = fn(t.objectStore(storeName));
     t.oncomplete = () => res(req.result);
     t.onerror = () => rej(t.error);
   });
 }
+
+const tx = (mode, fn) => txStore('photos', mode, fn);
+const txReports = (mode, fn) => txStore('reports', mode, fn);
 
 /* ---------- Site location (job name) ---------- */
 
@@ -574,22 +598,12 @@ function updateLocationDisplay() {
   $('newLocBtn').textContent = loc ? 'Start New Location' : 'Set Location';
 }
 
-/* ---------- Reports counter ---------- */
-
-const getReportCount = () => { try { return parseInt(localStorage.getItem('geocamReportCount') || '0', 10) || 0; } catch { return 0; } };
-const setReportCount = (n) => { try { localStorage.setItem('geocamReportCount', String(n)); } catch {} };
-
-function updateReportCount() {
-  $('repCount').textContent = getReportCount();
-}
-
 /* ---------- British National Grid conversion ---------- */
 /* WGS84 lat/lon -> OSGB36 using Helmert transformation and Transverse Mercator */
 
 function toBNG(latDeg, lonDeg) {
   const rad = d => d * Math.PI / 180;
 
-  // WGS84 to Cartesian coordinates
   const aW = 6378137, bW = 6356752.314245, e2W = 1 - (bW * bW) / (aW * aW);
   const phi = rad(latDeg), lam = rad(lonDeg);
   const nuW = aW / Math.sqrt(1 - e2W * Math.sin(phi) ** 2);
@@ -597,7 +611,6 @@ function toBNG(latDeg, lonDeg) {
   const y1 = nuW * Math.cos(phi) * Math.sin(lam);
   const z1 = nuW * (1 - e2W) * Math.sin(phi);
 
-  // Helmert shift
   const tx = -446.448, ty = 125.157, tz = -542.060;
   const s = 1 + 20.4894e-6;
   const rx = rad(-0.1502 / 3600), ry = rad(-0.2470 / 3600), rz = rad(-0.8421 / 3600);
@@ -606,7 +619,6 @@ function toBNG(latDeg, lonDeg) {
   const y2 = ty + x1 * rz + y1 * s - z1 * rx;
   const z2 = tz - x1 * ry + y1 * rx + z1 * s;
 
-  // Convert to Airy 1830 ellipsoid
   const a = 6377563.396, b = 6356256.909, e2 = 1 - (b * b) / (a * a);
   const p = Math.hypot(x2, y2);
   let ph = Math.atan2(z2, p * (1 - e2));
@@ -618,7 +630,6 @@ function toBNG(latDeg, lonDeg) {
 
   const la = Math.atan2(y2, x2);
 
-  // Transverse Mercator projection
   const F0 = 0.9996012717, ph0 = rad(49), la0 = rad(-2), E0 = 400000, N0 = -100000;
   const n = (a - b) / (a + b);
   const sin = Math.sin(ph), cos = Math.cos(ph), tan = Math.tan(ph);
@@ -795,7 +806,7 @@ $('cam').onchange = async e => {
 
 /* ---------- Android live camera ---------- */
 
-let camStarting = false;   // stops two camera starts running at once
+let camStarting = false;
 
 function showLive(on) {
   $('live').hidden = !on;
@@ -803,7 +814,6 @@ function showLive(on) {
   $('takeHint').style.display = on ? 'none' : '';
 }
 
-// Stop the camera and release its hardware resources.
 function stopCam() {
   if (stream) {
     stream.getTracks().forEach(track => track.stop());
@@ -814,15 +824,12 @@ function stopCam() {
   $('video').srcObject = null;
 }
 
-// A stream counts as "rear" unless the browser says it is the front camera.
 function isRear(s) {
   const t = s.getVideoTracks()[0];
   const fm = t.getSettings().facingMode;
   return fm ? fm === 'environment' : !/front|user|selfie/i.test(t.label);
 }
 
-// Open the REAR camera and never return a front one.
-// Order: strict rear only -> prefer rear -> pick the camera labelled back/rear.
 async function openRearCamera() {
   const size = { width: { ideal: 3840 }, height: { ideal: 2160 } };
   const attempts = [
@@ -835,14 +842,13 @@ async function openRearCamera() {
     try {
       const s = await navigator.mediaDevices.getUserMedia({ video, audio: false });
       if (isRear(s)) return s;
-      s.getTracks().forEach(t => t.stop());   // got the front camera by mistake: discard it
+      s.getTracks().forEach(t => t.stop());
     } catch (e) {
       lastErr = e;
-      if (e.name === 'NotAllowedError') throw e;   // permission denied: retrying won't help
+      if (e.name === 'NotAllowedError') throw e;
     }
   }
 
-  // Last resort: open any camera so labels become visible, then choose the back one by name
   try {
     const tmp = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
     tmp.getTracks().forEach(t => t.stop());
@@ -856,7 +862,7 @@ async function openRearCamera() {
         audio: false
       });
       if (isRear(s)) return s;
-      s.getTracks().forEach(t => t.stop());   // still not the rear camera: never use it
+      s.getTracks().forEach(t => t.stop());
     }
   } catch (e) {
     lastErr = e;
@@ -866,16 +872,14 @@ async function openRearCamera() {
 }
 
 async function startCam(tries = 3) {
-  // Do not start while the page is in the background, or if a start is already running.
   if (document.hidden || camStarting) return;
   camStarting = true;
 
-  stopCam();   // release any old stream first
+  stopCam();
 
   try {
     const newStream = await openRearCamera();
 
-    // If the request finished after the page was hidden, stop it.
     if (document.hidden) {
       newStream.getTracks().forEach(track => track.stop());
       return;
@@ -885,16 +889,14 @@ async function startCam(tries = 3) {
     $('video').srcObject = stream;
     await $('video').play();
 
-    // Check again in case the page was hidden while the video was starting.
     if (document.hidden) {
       stopCam();
       return;
     }
 
     const track = stream.getVideoTracks()[0];
-    imgCap = 'ImageCapture' in window ? new ImageCapture(track) : null;   // without it, a video frame is used instead
+    imgCap = 'ImageCapture' in window ? new ImageCapture(track) : null;
 
-    // If the camera is taken away (another app, screen lock), start it again.
     track.onended = () => { if (!document.hidden) { stopCam(); startCam(); } };
 
     $('retryCam').hidden = true;
@@ -904,7 +906,6 @@ async function startCam(tries = 3) {
     stopCam();
     showLive(false);
 
-    // Camera still busy (e.g. just back from another app): wait a moment, then try again.
     if (tries > 1 && (e.name === 'NotReadableError' || e.name === 'AbortError')) {
       setTimeout(() => startCam(tries - 1), 800);
       return;
@@ -922,14 +923,12 @@ async function startCam(tries = 3) {
 
 $('retryCam').onclick = () => startCam();
 
-// Stop the camera when GeoCam goes into the background, and restart it when you come back.
 document.addEventListener('visibilitychange', () => {
   if (!LIVE) return;
   if (document.hidden) stopCam();
   else startCam();
 });
 
-// Also stop the camera when the page is being left, and restart if the browser restores the page from cache.
 window.addEventListener('pagehide', stopCam);
 window.addEventListener('pageshow', e => { if (LIVE && e.persisted) startCam(); });
 
@@ -1011,7 +1010,6 @@ async function save(source, w, h, p) {
       ]
     : ['No GPS fix', when];
 
-  // Limit photos to approximately 16 megapixels.
   const k = Math.min(1, Math.sqrt(16e6 / (w * h)));
 
   w = Math.round(w * k);
@@ -1026,7 +1024,6 @@ async function save(source, w, h, p) {
 
   x.drawImage(source, 0, 0, w, h);
 
-  // Dark information bar along the bottom of the photo.
   const fs = Math.max(16, Math.round(Math.min(w, h) * 0.03));
   const barH = Math.round(lines.length * fs * 1.4 + fs);
 
@@ -1041,7 +1038,6 @@ async function save(source, w, h, p) {
     x.fillText(t, fs * 0.6, h - barH + fs * 0.5 + i * fs * 1.4);
   });
 
-  // Create a smaller thumbnail for the photo grid.
   const th = document.createElement('canvas');
 
   th.width = 360;
@@ -1061,7 +1057,7 @@ async function save(source, w, h, p) {
     e: en ? en.e : null,
     n: en ? en.n : null,
     time: now.getTime(),
-    ...uploadFields(),   // adds up:false (not uploaded yet), initials, running number
+    ...uploadFields(),
     name: `geocam_${stamp}${c ? '' : '_nogps'}.jpg`
   };
 
@@ -1069,7 +1065,7 @@ async function save(source, w, h, p) {
 
   render();
 
-  uploadPending();   // start sending straight away (not awaited)
+  uploadPending();
 
   return rec;
 }
@@ -1092,7 +1088,7 @@ function download(r) {
 
 async function render() {
   photos = (await tx('readonly', s => s.getAll())).reverse();
-  showUpStatus(photos.filter(r => r.up === false).length);   // refresh the "waiting to upload" line
+  showUpStatus(photos.filter(r => r.up === false).length);
 
   urls.forEach(URL.revokeObjectURL);
   urls = [];
@@ -1130,7 +1126,6 @@ async function render() {
       <button class="btn link del">Delete</button>
     `;
 
-    // Open full-size photo when tapped.
     t.querySelector('img').onclick = () => {
       const v = $('view');
       const vu = URL.createObjectURL(r.blob);
@@ -1170,8 +1165,6 @@ async function render() {
   }
 }
 
-/* ---------- Download all photos ---------- */
-
 $('dlAll').onclick = async () => {
   for (const r of photos) {
     download(r);
@@ -1179,10 +1172,7 @@ $('dlAll').onclick = async () => {
   }
 };
 
-/* ---------- Delete all photos ---------- */
-
 $('delAll').onclick = async () => {
-  // Extra warning if any photos haven't been uploaded yet
   const waiting = photos.filter(r => r.up === false).length;
   if (waiting && !confirm(`⚠ ${waiting} photo${waiting > 1 ? 's have' : ' has'} NOT been uploaded yet and will be lost for good. Continue?`)) return;
 
@@ -1193,26 +1183,23 @@ $('delAll').onclick = async () => {
 };
 
 /* ---------- Telegram upload ---------- */
-// Settings are stored on each phone (localStorage), NOT in this file,
-// so the bot token isn't visible in your public page source.
-let uploading = false, uploadPaused = null;   // uploadPaused = message shown when settings are wrong
+let uploading = false, uploadPaused = null;
 
 const cfg = () => { try { return JSON.parse(localStorage.getItem('geocamTG')) || {}; } catch { return {}; } };
 const cfgOk = () => { const c = cfg(); return !!(c.token && c.chat); };
 
 function saveCfg(c) {
   try { localStorage.setItem('geocamTG', JSON.stringify(c)); } catch {}
-  uploadPaused = null;   // settings changed, so allow uploads again
+  uploadPaused = null;
 }
 
-// Running number per phone, so you can spot a missing photo (JC-013 then JC-015)
 function uploadFields() {
   let seq = 0;
   try {
     seq = (parseInt(localStorage.getItem('geocamSeq'), 10) || 0) + 1;
     localStorage.setItem('geocamSeq', seq);
   } catch {}
-  return { up: false, by: cfg().name || '', seq };   // up:false = waiting to upload
+  return { up: false, by: cfg().name || '', seq };
 }
 
 const caption = r => {
@@ -1230,36 +1217,53 @@ async function uploadPending() {
   const c = cfg();
 
   try {
-    // Only photos marked up:false are sent (older photos have no flag, so they're left alone)
-    const all = await tx('readonly', s => s.getAll());
+    // Photos first
+    try {
+      const all = await tx('readonly', s => s.getAll());
+      for (const r of all.filter(r => r.up === false)) {
+        const fd = new FormData();
+        fd.append('chat_id', c.chat);
+        fd.append('caption', caption(r));
+        fd.append('document', r.blob, r.name);
 
-    for (const r of all.filter(r => r.up === false)) {
-      const fd = new FormData();
-      fd.append('chat_id', c.chat);
-      fd.append('caption', caption(r));
-      fd.append('document', r.blob, r.name);   // sendDocument keeps the original JPEG (sendPhoto recompresses)
+        let resp;
+        try {
+          resp = await fetch(`https://api.telegram.org/bot${c.token}/sendDocument`, { method: 'POST', body: fd });
+        } catch { break; }
 
-      let resp;
-      try {
-        resp = await fetch(`https://api.telegram.org/bot${c.token}/sendDocument`, { method: 'POST', body: fd });
-      } catch { break; }   // no signal: stop and retry later
+        if (resp.ok) {
+          r.up = true;
+          await tx('readwrite', s => s.put(r));
+        } else {
+          if ([400, 401, 403, 404].includes(resp.status)) uploadPaused = 'Upload settings look wrong – check them';
+          break;
+        }
 
-      if (resp.ok) {
-        r.up = true;   // Telegram confirmed it, so mark as uploaded
-        await tx('readwrite', s => s.put(r));
-      } else {
-        // 400/401/403/404 = wrong token or chat ID: stop retrying until settings are fixed
-        if ([400, 401, 403, 404].includes(resp.status)) uploadPaused = 'Upload settings look wrong – check them';
-        break;   // 429 (too fast) or server error: try again later
+        await new Promise(res => setTimeout(res, 1200));
       }
+    } catch {}
 
-      await new Promise(res => setTimeout(res, 1200));   // gentle pacing so Telegram doesn't throttle us
+    // Then pending reports
+    if (!uploadPaused) {
+      try {
+        const pendingReports = (await txReports('readonly', s => s.getAll())).filter(r => !r.up);
+        for (const r of pendingReports) {
+          if (await sendTelegramText(r.text)) {
+            r.up = true;
+            await txReports('readwrite', s => s.put(r));
+          } else {
+            break;
+          }
+          await new Promise(res => setTimeout(res, 1200));
+        }
+      } catch {}
     }
   } finally {
     uploading = false;
   }
 
-  render();   // refresh ticks + status line
+  try { render(); } catch {}
+  try { await renderReports(); } catch {}
 }
 
 function showUpStatus(n) {
@@ -1286,7 +1290,7 @@ function loadCfgForm() {
   $('cfgName').value = c.name || '';
   $('cfgToken').value = c.token || '';
   $('cfgChat').value = c.chat || '';
-  $('setup').open = !cfgOk();   // panel stays open until set up
+  $('setup').open = !cfgOk();
 }
 
 $('cfgSave').onclick = () => {
@@ -1298,15 +1302,14 @@ $('cfgSave').onclick = () => {
   $('setup').open = false;
   toast('Upload settings saved ✓');
   render();
+  renderReports();
   uploadPending();
 };
 
-// Retry triggers: signal comes back, app returns to the front, and every 20 seconds
 window.addEventListener('online', uploadPending);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) uploadPending(); });
 setInterval(uploadPending, 20000);
 
-// Setup link: https://your-site/#tg=TOKEN&chat=CHATID&n=JC saves the settings, then clears the link
 (() => {
   const h = new URLSearchParams(location.hash.slice(1));
   if (h.get('tg') && h.get('chat')) {
@@ -1396,6 +1399,16 @@ function escapeHTML(s) {
     .replace(/>/g, '&gt;');
 }
 
+function toPlainText(html) {
+  return String(html)
+    .replace(/<b>([\s\S]*?)<\/b>/g, '$1')
+    .replace(/<i>([\s\S]*?)<\/i>/g, '$1')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+}
+
 function serializeForm(form) {
   const sections = [];
 
@@ -1403,7 +1416,6 @@ function serializeForm(form) {
     const legend = group.querySelector('.rf-legend')?.textContent.trim() || '';
     const lines = [];
 
-    // Pipe / face cards first
     for (const details of group.querySelectorAll('.pipe-card')) {
       const summaryText = details.querySelector('summary').childNodes[0]?.textContent?.trim() || '';
       const sub = [];
@@ -1419,7 +1431,6 @@ function serializeForm(form) {
       }
     }
 
-    // Ordinary fields (skip anything inside a pipe card)
     const seen = new Set();
     for (const field of group.querySelectorAll('input, textarea, select')) {
       if (field.closest('.pipe-card')) continue;
@@ -1437,7 +1448,6 @@ function serializeForm(form) {
       }
     }
 
-    // Trim trailing blank lines from the pipe section
     while (lines.length && lines[lines.length - 1] === '') lines.pop();
 
     if (lines.length) {
@@ -1512,18 +1522,17 @@ function hasUnsavedDrafts() {
   } catch { return false; }
 }
 
-/* ---- Telegram text sender (HTML formatted, handles >4096-char messages) ---- */
+/* ---- Telegram text sender ---- */
 
 async function sendTelegramText(html) {
   const c = cfg();
-  if (!c.token || !c.chat) { toast('Set up upload settings first'); return false; }
+  if (!c.token || !c.chat) return false;
 
   const MAX = 3800;
   const chunks = [];
   let cur = '';
 
   for (const line of html.split('\n')) {
-    // Overly long single line (e.g. a giant remarks field): strip tags and split safely
     if (line.length > MAX - 100) {
       if (cur) { chunks.push(cur); cur = ''; }
       const plain = line.replace(/<[^>]+>/g, '');
@@ -1561,7 +1570,100 @@ async function sendTelegramText(html) {
   return true;
 }
 
-/* ---- Open / close ---- */
+/* ---- Report tiles: storage, download, render ---- */
+
+function downloadReport(r) {
+  const plain = toPlainText(r.text);
+  const blob = new Blob([plain], { type: 'text/plain;charset=utf-8' });
+  const u = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = u;
+  a.download = r.name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 10000);
+}
+
+async function renderReports() {
+  if (!db) {
+    reports = [];
+  } else {
+    try {
+      reports = (await txReports('readonly', s => s.getAll())).reverse();
+    } catch {
+      reports = [];
+    }
+  }
+
+  $('repCount').textContent = reports.length;
+  $('repEmpty').hidden = reports.length > 0;
+  $('repTools').hidden = reports.length === 0;
+
+  const grid = $('repGrid');
+  grid.innerHTML = '';
+
+  for (const r of reports) {
+    const t = document.createElement('div');
+    t.className = 'tile rep-tile';
+
+    const typeLabel = r.type === 'manhole' ? '◉ Manhole Report' : '◎ Chamber Report';
+    const refLine = r.ref ? `<div class="rep-ref">${escapeHTML(r.ref)}</div>` : '';
+
+    t.innerHTML = `
+      <div class="rep-type">${typeLabel}</div>
+      ${refLine}
+      <div class="meta">
+        <b>${new Date(r.time).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</b>
+        <span>${r.location ? '📍 ' + escapeHTML(r.location) : 'No location set'}</span>
+        <span class="${r.up ? 'st-ok' : 'st-wait'}">${r.up ? '✓ Uploaded' : '⏳ Not uploaded yet'}</span>
+      </div>
+      <div class="acts"></div>
+    `;
+
+    const acts = t.querySelector('.acts');
+    const add = (label, cls, fn) => {
+      const b = document.createElement('button');
+      b.className = 'btn ' + cls;
+      b.textContent = label;
+      b.onclick = fn;
+      acts.appendChild(b);
+    };
+
+    add('Download', '', () => downloadReport(r));
+    add('Delete', 'link', async () => {
+      if (confirm(r.up
+        ? 'Delete this report?'
+        : '⚠ This report has NOT been uploaded yet – deleting it loses it for good. Delete anyway?')) {
+        try {
+          await txReports('readwrite', s => s.delete(r.id));
+        } catch {}
+        await renderReports();
+      }
+    });
+
+    grid.appendChild(t);
+  }
+}
+
+$('dlAllReports').onclick = async () => {
+  for (const r of reports) {
+    downloadReport(r);
+    await new Promise(res => setTimeout(res, 500));
+  }
+};
+
+$('delAllReports').onclick = async () => {
+  const waiting = reports.filter(r => !r.up).length;
+  if (waiting && !confirm(`⚠ ${waiting} report${waiting > 1 ? 's have' : ' has'} NOT been uploaded yet and will be lost for good. Continue?`)) return;
+
+  if (confirm(`Delete all ${reports.length} reports from this device? Make sure you’ve downloaded them first.`)) {
+    try { await txReports('readwrite', s => s.clear()); } catch {}
+    await renderReports();
+  }
+};
+
+/* ---- Report open / close ---- */
 
 let currentReport = null;
 let draftTimer;
@@ -1600,8 +1702,6 @@ window.addEventListener('popstate', () => {
   if (!$('reportOverlay').hidden) hideOverlay();
 });
 
-/* ---- Chip toggling, draft autosave, pipe summaries ---- */
-
 document.addEventListener('change', e => {
   if (e.target.matches('.rf-chips input')) {
     e.target.closest('label').classList.toggle('chip-on', e.target.checked);
@@ -1616,7 +1716,7 @@ document.addEventListener('input', e => {
   draftTimer = setTimeout(() => saveDraft(currentReport), 400);
 });
 
-/* ---- Send ---- */
+/* ---- Send: save to device first, then try Telegram ---- */
 
 $('reportSend').onclick = async () => {
   if (!currentReport) return;
@@ -1627,34 +1727,78 @@ $('reportSend').onclick = async () => {
   const title = currentReport === 'manhole' ? 'MANHOLE REPORT' : 'CHAMBER REPORT';
   const loc   = getLocation();
   const who   = cfg().name ? cfg().name + ' · ' : '';
-  const stamp = new Date().toLocaleString();
+  const now   = new Date();
+  const stamp = now.toLocaleString();
   const text  = `<b>${title}</b>\n` +
     (loc ? `<b>📍 ${escapeHTML(loc)}</b>\n` : '') +
     `<i>${escapeHTML(who + stamp)}</i>\n\n${body}`;
 
+  // Grab a human-friendly reference for the tile
+  const cardNo = (body.match(/<b>Card No:<\/b> ([^<\n]+)/) || [])[1] || '';
+  const refNo  = (body.match(/<b>MH \/ Pit \/ Gulley Ref:<\/b> ([^<\n]+)/) || [])[1] || '';
+  const ref    = (cardNo || refNo || '').trim();
+
+  const fileStamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+
+  const rec = {
+    type: currentReport,
+    text,
+    location: loc,
+    ref,
+    time: now.getTime(),
+    up: false,
+    name: `${currentReport}_${fileStamp}.txt`
+  };
+
   const btn = $('reportSend');
   btn.disabled = true; btn.textContent = 'Sending…';
 
+  let saved = false;
+  let savedId = null;
   try {
-    if (await sendTelegramText(text)) {
-      toast('Report sent ✓');
-      setReportCount(getReportCount() + 1);
-      updateReportCount();
-      form.reset();
-      form.querySelectorAll('label.chip-on').forEach(l => l.classList.remove('chip-on'));
-      form.querySelectorAll('.pipe-card').forEach(updatePipeSummary);
-      clearDraft(currentReport);
-      if (history.state && history.state.report) history.back();
-      else hideOverlay();
-    } else {
-      toast('Send failed – check settings or signal');
+    if (db) {
+      savedId = await txReports('readwrite', s => s.add(rec));
+      rec.id = savedId;
+      saved = true;
     }
-  } catch {
-    toast('Send failed – check signal');
-  } finally {
+  } catch {}
+
+  let sent = false;
+  try {
+    if (cfgOk() && navigator.onLine) sent = await sendTelegramText(text);
+  } catch {}
+
+  if (saved && sent) {
+    try {
+      rec.up = true;
+      await txReports('readwrite', s => s.put(rec));
+    } catch {}
+    toast('Report sent ✓');
+  } else if (saved) {
+    toast(cfgOk()
+      ? 'Saved on phone – will send when signal returns'
+      : 'Saved on phone – set up upload settings to send');
+  } else if (sent) {
+    toast('Sent – couldn’t save on this phone');
+  } else {
+    toast('Couldn’t send or save – check signal');
     btn.disabled = false;
     btn.textContent = 'Send report';
+    return;
   }
+
+  form.reset();
+  form.querySelectorAll('label.chip-on').forEach(l => l.classList.remove('chip-on'));
+  form.querySelectorAll('.pipe-card').forEach(updatePipeSummary);
+  clearDraft(currentReport);
+
+  btn.disabled = false;
+  btn.textContent = 'Send report';
+
+  await renderReports();
+
+  if (history.state && history.state.report) history.back();
+  else hideOverlay();
 };
 
 /* ---- Clear ---- */
@@ -1674,34 +1818,36 @@ $('reportClear').onclick = () => {
 
 async function startNewLocation() {
   const unsentPhotos = photos.filter(r => r.up === false).length;
+  const unsentReports = reports.filter(r => !r.up).length;
   const drafts = hasUnsavedDrafts();
 
   const warnings = [];
   if (unsentPhotos) warnings.push(`${unsentPhotos} unsent photo${unsentPhotos > 1 ? 's' : ''}`);
+  if (unsentReports) warnings.push(`${unsentReports} unsent report${unsentReports > 1 ? 's' : ''}`);
   if (drafts) warnings.push('unsent report draft(s)');
 
   let msg = 'Start a new location?';
   if (warnings.length) {
     msg += '\n\n⚠ ' + warnings.join(' and ') + ' will be permanently wiped.';
   }
-  msg += '\n\nAll photos and report drafts on this device will be cleared. Photos and reports already sent to Telegram are safe.\n\nContinue?';
+  msg += '\n\nAll photos, reports and drafts on this device will be cleared. Anything already sent to Telegram is safe.\n\nContinue?';
 
   if (!confirm(msg)) return;
 
   const loc = prompt('Site Location / Road Name for this job:', getLocation());
-  if (loc === null) return;               // user cancelled the prompt
+  if (loc === null) return;
   if (!loc.trim()) { toast('Location name required'); return; }
 
-  await tx('readwrite', s => s.clear()); // wipe all photos
+  try { await tx('readwrite', s => s.clear()); } catch {}
+  try { await txReports('readwrite', s => s.clear()); } catch {}
   clearDraft('manhole');
   clearDraft('chamber');
   try { localStorage.removeItem('geocamSeq'); } catch {}
-  setReportCount(0);
   setLocation(loc.trim());
 
   updateLocationDisplay();
-  updateReportCount();
-  render();
+  try { render(); } catch {}
+  await renderReports();
   toast('New location: ' + loc.trim());
 }
 
@@ -1720,12 +1866,14 @@ $('newLocBtn').onclick = startNewLocation;
     navigator.storage.persist();
   }
 
-  if (db) render();
+  if (db) {
+    try { render(); } catch {}
+  }
+  try { await renderReports(); } catch {}
 
-  loadCfgForm();          // fill in the upload settings form
-  uploadPending();        // send anything left over from last time
+  loadCfgForm();
+  uploadPending();
   updateLocationDisplay();
-  updateReportCount();
 
   startGPS();
 
