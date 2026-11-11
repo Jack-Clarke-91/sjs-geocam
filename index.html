@@ -87,6 +87,53 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 #view{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:9}
 #view img{max-width:100%;max-height:100%}
 
+/* ---- Survey reports ---- */
+.reports{margin-top:18px}
+.reports h2{margin:0 0 10px;font-size:18px}
+.report-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.report-btn{display:flex;align-items:center;gap:10px;text-align:left;padding:14px 12px;font:inherit;color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:12px;cursor:pointer}
+.report-btn:active{background:#f0f4f6}
+.report-btn b{display:block;font-size:14px}
+.report-btn small{display:block;font-size:11px;color:var(--mut)}
+.report-ico{font-size:26px;color:var(--acc);line-height:1}
+
+.report-overlay{position:fixed;inset:0;background:rgba(20,33,43,.4);z-index:30;display:flex}
+.report-overlay[hidden]{display:none}
+.report-sheet{background:var(--bg);width:100%;max-width:720px;margin:0 auto;display:flex;flex-direction:column;height:100vh;max-height:100vh}
+.report-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;background:#151b21;color:#e8e7e1}
+.report-head h2{margin:0;font-size:17px;color:#26B3BE;letter-spacing:.5px}
+.report-head .btn{padding:6px 12px;font-size:13px;border-color:#3a424a;color:#e8e7e1;background:transparent}
+.report-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px calc(12px + env(safe-area-inset-right)) 12px calc(12px + env(safe-area-inset-left))}
+.report-foot{display:flex;gap:8px;padding:10px calc(12px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));background:var(--card);border-top:1px solid var(--line)}
+.report-foot .btn{flex:1;padding:13px;font-size:15px}
+.report-form[hidden]{display:none}
+
+.rf-group{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin:0 0 10px;min-width:0}
+.rf-legend{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--mut);margin-bottom:10px}
+.rf-row{margin-top:10px}
+.rf-row:first-of-type{margin-top:0}
+.rf-row > label{display:block;font-size:12px;color:var(--mut);margin-bottom:4px}
+.rf-grid-2,.rf-grid-3{display:grid;gap:8px}
+.rf-grid-2{grid-template-columns:1fr 1fr}
+.rf-grid-3{grid-template-columns:1fr 1fr 1fr}
+.rf-grid-2 > div > label,.rf-grid-3 > div > label{display:block;font-size:12px;color:var(--mut);margin-bottom:4px}
+.rf-row input[type=text],.rf-row input[type=number],.rf-row input[type=date],
+.rf-row textarea,.rf-row select,.rf-grid-2 input,.rf-grid-3 input{width:100%;padding:10px;font:inherit;font-size:16px;border:1px solid var(--line);border-radius:8px;background:#fff;-webkit-appearance:none;appearance:none}
+.rf-row textarea{min-height:80px;resize:vertical}
+
+.rf-chips{display:flex;flex-wrap:wrap;gap:6px}
+.rf-chips label{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--line);border-radius:99px;background:#fff;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.rf-chips label input{margin:0;accent-color:var(--acc)}
+.rf-chips label.chip-on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.pipe-card{border:1px solid var(--line);border-radius:8px;margin-top:8px;background:#fafcfd}
+.pipe-card:first-child{margin-top:0}
+.pipe-card summary{padding:11px 12px;cursor:pointer;font-size:14px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:8px;list-style:none}
+.pipe-card summary::-webkit-details-marker{display:none}
+.pipe-card[open] summary{border-bottom:1px solid var(--line)}
+.pipe-body{padding:10px 12px}
+.pipe-summary-fill{font-size:11px;font-weight:400;color:var(--mut)}
+
 /* Compact mobile layout */
 @media (max-width:600px){
   header{padding-left:10px;padding-right:10px}
@@ -110,6 +157,9 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
   .live .hint{font-size:11px}
   .take{margin:9px 0 4px;padding:14px;font-size:18px}
   .bar{margin:18px 0 10px}
+  .rf-grid-3{grid-template-columns:1fr 1fr}
+  .report-btn{padding:12px 10px}
+  .report-btn b{font-size:13px}
 }
 </style>
 </head>
@@ -150,6 +200,21 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
           </div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- Survey reports -->
+  <section class="reports">
+    <h2>Survey Reports</h2>
+    <div class="report-buttons">
+      <button type="button" class="report-btn" data-report="manhole">
+        <span class="report-ico">◉</span>
+        <span><b>Manhole Report</b><small>Chamber survey card</small></span>
+      </button>
+      <button type="button" class="report-btn" data-report="chamber">
+        <span class="report-ico">◎</span>
+        <span><b>Chamber Report</b><small>Utility chamber card</small></span>
+      </button>
     </div>
   </section>
 
@@ -206,6 +271,214 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 
 <div id="toast"></div>
 <div id="view"><img alt=""></div>
+
+<!-- Full-screen report sheet -->
+<div id="reportOverlay" class="report-overlay" hidden>
+  <div class="report-sheet">
+    <div class="report-head">
+      <h2 id="reportTitle">Report</h2>
+      <button type="button" class="btn" id="reportClose">Close</button>
+    </div>
+    <div class="report-body" id="reportBody">
+
+      <!-- ============ MANHOLE REPORT ============ -->
+      <form class="report-form" data-report="manhole" hidden autocomplete="off">
+
+        <fieldset class="rf-group">
+          <div class="rf-legend">Identification</div>
+          <div class="rf-grid-3">
+            <div><label>Card No</label><input name="cardNo" type="text"></div>
+            <div><label>Map No</label><input name="mapNo" type="text"></div>
+            <div><label>CH No</label><input name="chNo" type="text"></div>
+          </div>
+          <div class="rf-row"><label>Location</label><input name="location" type="text"></div>
+          <div class="rf-row"><label>Town</label><input name="town" type="text"></div>
+          <div class="rf-grid-2" style="margin-top:8px">
+            <div><label>Status *</label><input name="status" type="text"></div>
+            <div><label>Date of Survey *</label><input name="date" type="date"></div>
+          </div>
+          <div class="rf-grid-2" style="margin-top:8px">
+            <div><label>Syphon Y/N *</label><input name="syphon" type="text"></div>
+            <div><label>Function Y/N *</label><input name="function" type="text"></div>
+          </div>
+          <div class="rf-row"><label>MH Type *</label><input name="mhType" type="text"></div>
+        </fieldset>
+
+        <fieldset class="rf-group">
+          <div class="rf-legend">Cover Details</div>
+          <div class="rf-row">
+            <label>Shape</label>
+            <div class="rf-chips">
+              <label><input type="checkbox" name="coverShape" value="Square">Square</label>
+              <label><input type="checkbox" name="coverShape" value="Rectangle">Rectangle</label>
+              <label><input type="checkbox" name="coverShape" value="Triangle">Triangle</label>
+              <label><input type="checkbox" name="coverShape" value="Del Triangle">Del Triangle</label>
+              <label><input type="checkbox" name="coverShape" value="Circular">Circular</label>
+              <label><input type="checkbox" name="coverShape" value="Oval">Oval</label>
+              <label><input type="checkbox" name="coverShape" value="Other">Other</label>
+            </div>
+          </div>
+          <div class="rf-row">
+            <label>Features</label>
+            <div class="rf-chips">
+              <label><input type="checkbox" name="coverFeatures" value="Multiple">Multiple</label>
+              <label><input type="checkbox" name="coverFeatures" value="Hinged">Hinged</label>
+              <label><input type="checkbox" name="coverFeatures" value="Lockable">Lockable</label>
+            </div>
+          </div>
+          <div class="rf-grid-3" style="margin-top:10px">
+            <div><label>Cover Level (m)</label><input name="coverLevel" type="number" step="0.001" inputmode="decimal"></div>
+            <div><label>H/M/L Duty</label><input name="coverDuty" type="text"></div>
+            <div><label>Initials</label><input name="initials" type="text" maxlength="4" autocapitalize="characters"></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="rf-group">
+          <div class="rf-legend">Incoming Pipes</div>
+          <div data-pipes="mh_in" data-letters="A,B,C,D,E,F"></div>
+        </fieldset>
+
+        <fieldset class="rf-group">
+          <div class="rf-legend">Outgoing Pipes</div>
+          <div data-pipes="mh_out" data-letters="X,Y"></div>
+        </fieldset>
+
+        <fieldset class="rf-group">
+          <div class="rf-legend">Dimensions &amp; Atmosphere</div>
+          <div class="rf-grid-2">
+            <div><label>Cover Opening at narrowest (mm)</label><input name="coverOpening" type="number" inputmode="numeric"></div>
+            <div><label>Chamber Size at widest (mm)</label><input name="chamberSize" type="number" inputmode="numeric"></div>
+          </div>
+          <div class="rf-grid-2" style="margin-top:8px">
+            <div><label>Shaft at narrowest (mm)</label><input name="shaftNarrow" type="number" inputmode="numeric"></div>
+            <div><label>Shaft Depth from CL (mm)</label><input name="shaftDepth" type="number" inputmode="numeric"></div>
+          </div>
+          <div class="rf-grid-2" style="margin-top:8px">
+            <div><label>Evidence of Surcharge</label><input name="surcharge" type="text"></div>
+            <div><label>OX / H2S / METH Toxic atmosphere</label><input name="toxic" type="text"></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="rf-group">
+          <div class="rf-legend">Chamber Construction</div>
+          <div class="rf-row">
+            <label>Type</label>
+            <div class="rf-chips">
+              <label><input type="checkbox" name="construction" value="Pre Cast Concrete">Pre Cast Concrete</label>
+              <label><input type="checkbox" name="construction" value="In Situ Concrete">In Situ Concrete</label>
+              <label><input type="checkbox" name="construction" value="Brick">Brick</label>
+              <label><input type="checkbox" name="construction" value="GRP">GRP</label>
+              <label><input type="checkbox" name="construction" value="Arch">Arch</label>
+              <label><input type="checkbox" name="construction" value="Corbel">Corbel</label>
+              <label><input type="checkbox" name="construction" value="Taper">Taper</label>
+              <label><input type="checkbox" name="construction" value="Side Entry">Side Entry</label>
+              <label><input type="checkbox" name="construction" value="Reducing Slab">Reducing Slab</label>
+              <label><input type="checkbox" name="construction" value="Segments">Segments</label>
+            </div>
+          </div>
+          <div class="rf-grid-2" style="margin-top:10px">
+            <div><label>No. of Landings</label><input name="landings" type="number" inputmode="numeric"></div>
+            <div><label>No. of Step Irons</label><input name="stepIrons" type="number" inputmode="numeric"></div>
+          </div>
+          <div class="rf-grid-2" style="margin-top:8px">
+            <div><label>No. of Ladders</label><input name="ladders" type="number" inputmode="numeric"></div>
+            <div><label>No. of Regulating Brick Courses</label><input name="regBrick" type="number" inputmode="numeric"></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="rf-group">
+          <div class="rf-legend">Condition</div>
+          <div class="rf-row"><label>Cover</label><div class="rf-chips">
+            <label><input type="radio" name="condCover" value="OK">OK</label>
+            <label><input type="radio" name="condCover" value="Needs attention">Needs attention</label>
+            <label><input type="radio" name="condCover" value="Urgent attention">Urgent attention</label>
+          </div></div>
+          <div class="rf-row"><label>Shaft</label><div class="rf-chips">
+            <label><input type="radio" name="condShaft" value="OK">OK</label>
+            <label><input type="radio" name="condShaft" value="Needs attention">Needs attention</label>
+            <label><input type="radio" name="condShaft" value="Urgent attention">Urgent attention</label>
+          </div></div>
+          <div class="rf-row"><label>Irons / Ladders</label><div class="rf-chips">
+            <label><input type="radio" name="condIrons" value="OK">OK</label>
+            <label><input type="radio" name="condIrons" value="Needs attention">Needs attention</label>
+            <label><input type="radio" name="condIrons" value="Urgent attention">Urgent attention</label>
+          </div></div>
+          <div class="rf-row"><label>Chamber</label><div class="rf-chips">
+            <label><input type="radio" name="condChamber" value="OK">OK</label>
+            <label><input type="radio" name="condChamber" value="Needs attention">Needs attention</label>
+            <label><input type="radio" name="condChamber" value="Urgent attention">Urgent attention</label>
+          </div></div>
+        </fieldset>
+
+        <fieldset class="rf-group">
+          <div class="rf-legend">Remarks</div>
+          <div class="rf-row">
+            <label>Remarks</label>
+            <textarea name="remarks" placeholder="Type any notes about this chamber…"></textarea>
+          </div>
+        </fieldset>
+
+      </form>
+
+      <!-- ============ CHAMBER REPORT ============ -->
+      <form class="report-form" data-report="chamber" hidden autocomplete="off">
+
+        <fieldset class="rf-group">
+          <div class="rf-legend">Identification</div>
+          <div class="rf-grid-2">
+            <div><label>Survey Date</label><input name="date" type="date"></div>
+            <div><label>MH / Pit / Gulley Ref</label><input name="ref" type="text"></div>
+          </div>
+          <div class="rf-row"><label>Project Name</label><input name="project" type="text"></div>
+          <div class="rf-row"><label>Service</label><input name="service" type="text"></div>
+          <div class="rf-row"><label>Location</label><input name="location" type="text"></div>
+          <div class="rf-grid-2" style="margin-top:8px">
+            <div><label>Coordinate Easting</label><input name="easting" type="number" step="0.01" inputmode="decimal"></div>
+            <div><label>Coordinate Northing</label><input name="northing" type="number" step="0.01" inputmode="decimal"></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="rf-group">
+          <div class="rf-legend">Dimensions &amp; Construction</div>
+          <div class="rf-grid-2">
+            <div><label>Cover Level (m)</label><input name="coverLevel" type="number" step="0.001" inputmode="decimal"></div>
+            <div><label>Internal Depth (m)</label><input name="internalDepth" type="number" step="0.001" inputmode="decimal"></div>
+          </div>
+          <div class="rf-row"><label>Wall Construction</label><input name="wallConstr" type="text"></div>
+          <div class="rf-row"><label>Access Cover Type &amp; Size</label><input name="accessCover" type="text"></div>
+          <div class="rf-grid-2" style="margin-top:8px">
+            <div><label>Internal Plan Dims (mm)</label><input name="internalDims" type="text"></div>
+            <div><label>Cover Slab Size O/A (mm)</label><input name="coverSlabSize" type="text"></div>
+          </div>
+          <div class="rf-grid-2" style="margin-top:8px">
+            <div><label>Cover Slab Thickness (mm)</label><input name="coverSlabThick" type="number" inputmode="numeric"></div>
+            <div><label>Clear Opening (mm)</label><input name="clearOpening" type="number" inputmode="numeric"></div>
+          </div>
+          <div class="rf-row"><label>Condition of Chamber</label><input name="condition" type="text"></div>
+        </fieldset>
+
+        <fieldset class="rf-group">
+          <div class="rf-legend">Pipe / Duct Details</div>
+          <div data-faces="ch_pipes" data-faces-letters="A,B,C,D" data-ducts="1,2,3,4,5,6,7,8"></div>
+        </fieldset>
+
+        <fieldset class="rf-group">
+          <div class="rf-legend">Remarks</div>
+          <div class="rf-row">
+            <label>Remarks</label>
+            <textarea name="remarks" placeholder="Type any notes…"></textarea>
+          </div>
+        </fieldset>
+
+      </form>
+
+    </div>
+    <div class="report-foot">
+      <button type="button" class="btn" id="reportClear">Clear</button>
+      <button type="button" class="btn pri" id="reportSend">Send report</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const $ = id => document.getElementById(id);
@@ -986,6 +1259,318 @@ setInterval(uploadPending, 20000);
     toast('Upload settings saved ✓');
   }
 })();
+
+/* =========================================================
+   SURVEY REPORTS (Manhole / Chamber)
+   ========================================================= */
+
+const PIPE_COLS = [
+  { key: 'depth',         label: 'Depth from Cover (m)',        type: 'number', step: '0.01' },
+  { key: 'ref',           label: 'Upstream/Downstream MH Ref',  type: 'text' },
+  { key: 'shape',         label: 'Shape',                       type: 'text' },
+  { key: 'height',        label: 'Size Height (mm)',            type: 'number' },
+  { key: 'width',         label: 'Size Width (mm)',             type: 'number' },
+  { key: 'bed',           label: 'Pipe Bed',                    type: 'text' },
+  { key: 'lining',        label: 'Lining Mat',                  type: 'text' },
+  { key: 'backDropDia',   label: 'Back Drop Dia (mm)',          type: 'number' },
+  { key: 'backDropDepth', label: 'Back Drop Depth (m)',         type: 'number', step: '0.01' },
+];
+
+function buildPipeCards(container) {
+  const prefix  = container.dataset.pipes;
+  const letters = container.dataset.letters.split(',');
+  container.innerHTML = letters.map(l => {
+    const body = PIPE_COLS.map(c => `
+      <div>
+        <label>${c.label}</label>
+        <input name="${prefix}_${l}_${c.key}" type="${c.type}" ${c.step ? `step="${c.step}"` : ''} ${c.type === 'number' ? 'inputmode="decimal"' : ''}>
+      </div>`).join('');
+    return `<details class="pipe-card">
+      <summary>Pipe ${l} <span class="pipe-summary-fill">(empty)</span></summary>
+      <div class="pipe-body rf-grid-2">${body}</div>
+    </details>`;
+  }).join('');
+}
+
+function buildFaceCards(container) {
+  const prefix = container.dataset.faces;
+  const faces  = container.dataset.facesLetters.split(',');
+  const ducts  = container.dataset.ducts.split(',');
+  container.innerHTML = faces.map(f => {
+    const body = ducts.map(d => `
+      <div class="rf-grid-2" style="margin-top:6px">
+        <div><label>Duct ${d} — Depth (m)</label>
+          <input name="${prefix}_${f}_${d}_depth" type="number" step="0.01" inputmode="decimal"></div>
+        <div><label>Duct ${d} — Diameter (mm)</label>
+          <input name="${prefix}_${f}_${d}_dia" type="number" inputmode="numeric"></div>
+      </div>`).join('');
+    return `<details class="pipe-card">
+      <summary>Face ${f} <span class="pipe-summary-fill">(empty)</span></summary>
+      <div class="pipe-body">${body}</div>
+    </details>`;
+  }).join('');
+}
+
+document.querySelectorAll('[data-pipes]').forEach(buildPipeCards);
+document.querySelectorAll('[data-faces]').forEach(buildFaceCards);
+
+/* ---- Helpers ---- */
+
+function updatePipeSummary(details) {
+  const fill = details.querySelector('.pipe-summary-fill');
+  if (!fill) return;
+  const inputs = details.querySelectorAll('input');
+  const filled = Array.from(inputs).filter(i => i.value).length;
+  fill.textContent = filled ? `(${filled}/${inputs.length} filled)` : '(empty)';
+}
+
+function fieldLabel(field) {
+  if (field.type === 'checkbox' || field.type === 'radio') {
+    const row = field.closest('.rf-row');
+    return row?.querySelector(':scope > label')?.textContent.trim() || field.name;
+  }
+  const wrap = field.closest('div');
+  return wrap?.querySelector(':scope > label')?.textContent.trim() || field.name;
+}
+
+function serializeForm(form) {
+  const out = [];
+  const seen = new Set();
+
+  for (const group of form.querySelectorAll('.rf-group')) {
+    const legend = group.querySelector('.rf-legend')?.textContent.trim() || '';
+    const lines = [];
+
+    // Pipe / face cards first
+    for (const details of group.querySelectorAll('.pipe-card')) {
+      const heading = details.querySelector('summary').childNodes[0]?.textContent?.trim() || '';
+      const sub = [];
+      for (const field of details.querySelectorAll('input')) {
+        if (!field.value) continue;
+        const lbl = field.closest('div')?.querySelector(':scope > label')?.textContent.trim() || field.name;
+        sub.push(`  ${lbl}: ${field.value}`);
+      }
+      if (sub.length) {
+        lines.push(heading);
+        lines.push(...sub);
+        lines.push('');
+      }
+    }
+
+    // Ordinary fields (skip anything inside a pipe card)
+    for (const field of group.querySelectorAll('input, textarea, select')) {
+      if (field.closest('.pipe-card')) continue;
+      if (field.type === 'checkbox' || field.type === 'radio') {
+        if (seen.has(field.name)) continue;
+        seen.add(field.name);
+        const checked = Array.from(
+          group.querySelectorAll(`input[name="${field.name}"]:checked`)
+        ).map(c => c.value);
+        if (checked.length) lines.push(`${fieldLabel(field)}: ${checked.join(', ')}`);
+      } else if (field.value) {
+        lines.push(`${fieldLabel(field)}: ${field.value}`);
+      }
+    }
+
+    if (lines.length) {
+      if (legend) out.push('', `[${legend}]`);
+      out.push(...lines);
+    }
+  }
+
+  return out.join('\n').trim();
+}
+
+/* ---- Draft persistence ---- */
+
+function saveDraft(type) {
+  const form = document.querySelector(`.report-form[data-report="${type}"]`);
+  if (!form) return;
+  const data = {};
+  for (const el of form.querySelectorAll('input, textarea, select')) {
+    if (el.type === 'checkbox' || el.type === 'radio') {
+      if (!el.checked) continue;
+      if (el.type === 'radio') data[el.name] = el.value;
+      else (data[el.name] = data[el.name] || []).push(el.value);
+    } else if (el.value) {
+      data[el.name] = el.value;
+    }
+  }
+  try { localStorage.setItem('geocamDraft_' + type, JSON.stringify(data)); } catch {}
+}
+
+function restoreDraft(type) {
+  const form = document.querySelector(`.report-form[data-report="${type}"]`);
+  if (!form) return;
+  form.reset();
+  form.querySelectorAll('label.chip-on').forEach(l => l.classList.remove('chip-on'));
+
+  let data;
+  try { data = JSON.parse(localStorage.getItem('geocamDraft_' + type) || '{}'); } catch { return; }
+
+  for (const [name, val] of Object.entries(data)) {
+    if (Array.isArray(val)) {
+      for (const v of val) {
+        const cb = form.querySelector(`input[name="${name}"][value="${v}"]`);
+        if (cb) { cb.checked = true; cb.closest('label')?.classList.add('chip-on'); }
+      }
+    } else {
+      for (const el of form.querySelectorAll(`[name="${name}"]`)) {
+        if (el.type === 'radio') {
+          if (el.value === val) { el.checked = true; el.closest('label')?.classList.add('chip-on'); }
+        } else if (el.type === 'checkbox') {
+          if (el.value === val) el.checked = true;
+        } else {
+          el.value = val;
+        }
+      }
+    }
+  }
+  form.querySelectorAll('.pipe-card').forEach(updatePipeSummary);
+}
+
+function clearDraft(type) {
+  try { localStorage.removeItem('geocamDraft_' + type); } catch {}
+}
+
+/* ---- Telegram text sender (handles >4096-char messages) ---- */
+
+async function sendTelegramText(text) {
+  const c = cfg();
+  if (!c.token || !c.chat) { toast('Set up upload settings first'); return false; }
+
+  const MAX = 3800;
+  const chunks = [];
+  if (text.length <= MAX) {
+    chunks.push(text);
+  } else {
+    let cur = '';
+    for (const line of text.split('\n')) {
+      if ((cur + '\n' + line).length > MAX) { chunks.push(cur); cur = line; }
+      else cur = cur ? cur + '\n' + line : line;
+    }
+    if (cur) chunks.push(cur);
+  }
+
+  for (let i = 0; i < chunks.length; i++) {
+    const header = chunks.length > 1 ? `(${i + 1}/${chunks.length})\n` : '';
+    try {
+      const resp = await fetch(`https://api.telegram.org/bot${c.token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: c.chat,
+          text: header + chunks[i],
+          disable_web_page_preview: true
+        })
+      });
+      if (!resp.ok) return false;
+    } catch { return false; }
+    if (i < chunks.length - 1) await new Promise(r => setTimeout(r, 500));
+  }
+  return true;
+}
+
+/* ---- Open / close ---- */
+
+let currentReport = null;
+let draftTimer;
+
+function openReport(type) {
+  currentReport = type;
+  $('reportTitle').textContent = type === 'manhole' ? 'Manhole Report' : 'Chamber Report';
+  document.querySelectorAll('.report-form').forEach(f => {
+    f.hidden = f.dataset.report !== type;
+  });
+  $('reportOverlay').hidden = false;
+  document.body.style.overflow = 'hidden';
+  restoreDraft(type);
+  $('reportBody').scrollTop = 0;
+  history.pushState({ report: type }, '');
+}
+
+function hideOverlay() {
+  $('reportOverlay').hidden = true;
+  document.body.style.overflow = '';
+  currentReport = null;
+}
+
+document.querySelectorAll('.report-btn').forEach(btn => {
+  btn.onclick = () => openReport(btn.dataset.report);
+});
+
+$('reportClose').onclick = () => {
+  if (!currentReport) return;
+  saveDraft(currentReport);
+  if (history.state && history.state.report) history.back();
+  else hideOverlay();
+};
+
+window.addEventListener('popstate', () => {
+  if (!$('reportOverlay').hidden) hideOverlay();
+});
+
+/* ---- Chip toggling, draft autosave, pipe summaries ---- */
+
+document.addEventListener('change', e => {
+  if (e.target.matches('.rf-chips input')) {
+    e.target.closest('label').classList.toggle('chip-on', e.target.checked);
+  }
+});
+
+document.addEventListener('input', e => {
+  if (!currentReport) return;
+  const det = e.target.closest('.pipe-card');
+  if (det) updatePipeSummary(det);
+  clearTimeout(draftTimer);
+  draftTimer = setTimeout(() => saveDraft(currentReport), 400);
+});
+
+/* ---- Send ---- */
+
+$('reportSend').onclick = async () => {
+  if (!currentReport) return;
+  const form = document.querySelector(`.report-form[data-report="${currentReport}"]`);
+  const head = currentReport === 'manhole' ? '=== MANHOLE REPORT ===' : '=== CHAMBER REPORT ===';
+  const who  = cfg().name ? cfg().name + ' · ' : '';
+  const body = serializeForm(form);
+  const text = `${head}\n${who}${new Date().toLocaleString()}\n\n${body || '(empty)'}`;
+
+  const btn = $('reportSend');
+  btn.disabled = true; btn.textContent = 'Sending…';
+
+  try {
+    if (await sendTelegramText(text)) {
+      toast('Report sent ✓');
+      form.reset();
+      form.querySelectorAll('label.chip-on').forEach(l => l.classList.remove('chip-on'));
+      form.querySelectorAll('.pipe-card').forEach(updatePipeSummary);
+      clearDraft(currentReport);
+      if (history.state && history.state.report) history.back();
+      else hideOverlay();
+    } else {
+      toast('Send failed – check settings or signal');
+    }
+  } catch {
+    toast('Send failed – check signal');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Send report';
+  }
+};
+
+/* ---- Clear ---- */
+
+$('reportClear').onclick = () => {
+  if (!currentReport) return;
+  if (!confirm('Clear this report? Any typed information will be lost.')) return;
+  const form = document.querySelector(`.report-form[data-report="${currentReport}"]`);
+  form.reset();
+  form.querySelectorAll('label.chip-on').forEach(l => l.classList.remove('chip-on'));
+  form.querySelectorAll('.pipe-card').forEach(updatePipeSummary);
+  clearDraft(currentReport);
+  toast('Report cleared');
+};
 
 /* ---------- Start application ---------- */
 
