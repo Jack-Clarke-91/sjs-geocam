@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,584 +11,120 @@
 <title>GeoCam</title>
 
 <style>
-:root{
-  --bg:#f1f4f6;
-  --card:#fff;
-  --ink:#14212b;
-  --mut:#5d6b76;
-  --line:#d9e0e5;
-  --acc:#d9480f;
-  --acc2:#a83a0a;
-  --ok:#1b7a4b;
-  --warn:#b26a00;
-  --bad:#c62828;
-}
-
-*{
-  box-sizing:border-box;
-  -webkit-tap-highlight-color:transparent;
-}
-
-html,body{
-  margin:0;
-  background:var(--bg);
-  color:var(--ink);
-  font:16px/1.45 Calibri, "Segoe UI", sans-serif;
-}
-
-header{
-  background-color:#151b21;
-  background-image:
-    linear-gradient(rgba(10,15,20,.35) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(10,15,20,.35) 1px, transparent 1px);
-  background-size:20px 20px;
-  color:#e8e7e1;
-  padding:calc(14px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 14px calc(16px + env(safe-area-inset-left));
-  border-bottom:1px solid #252c33;
-}
-
-header h1{
-  font-family:Calibri, "Segoe UI", sans-serif;
-  font-size:27px;
-  font-weight:700;
-  letter-spacing:1px;
-  color:#26B3BE;
-  width:100%;
-  max-width:688px;
-  margin:0 auto;
-  padding:0 12px;
-  display:flex;
-  align-items:baseline;
-  justify-content:space-between;
-  line-height:1;
-}
-
-header h1 strong{
-  font-size:27px;
-  font-weight:700;
-  color:#26B3BE;
-}
-
-header h1 span{
-  color:#5d6b76;
-  font-size:20px;
-  font-weight:400;
-  letter-spacing:0.2px;
-  line-height:1;
-  align-self:baseline;
-}
-
-main{
-  max-width:720px;
-  margin:0 auto;
-  padding:16px calc(16px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
-}
+:root{--bg:#f1f4f6;--card:#fff;--ink:#14212b;--mut:#5d6b76;--line:#d9e0e5;--acc:#d9480f;--acc2:#a83a0a;--ok:#1b7a4b;--warn:#b26a00;--bad:#c62828}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Calibri,"Segoe UI",sans-serif}
+header{background-color:#151b21;background-image:linear-gradient(rgba(10,15,20,.35) 1px,transparent 1px),linear-gradient(90deg,rgba(10,15,20,.35) 1px,transparent 1px);background-size:20px 20px;color:#e8e7e1;padding:calc(14px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 14px calc(16px + env(safe-area-inset-left));border-bottom:1px solid #252c33}
+header h1{font-family:Calibri,"Segoe UI",sans-serif;font-size:27px;font-weight:700;letter-spacing:1px;color:#26B3BE;width:100%;max-width:688px;margin:0 auto;padding:0 12px;display:flex;align-items:baseline;justify-content:space-between;line-height:1}
+header h1 strong{font-size:27px;font-weight:700;color:#26B3BE}
+header h1 span{color:#5d6b76;font-size:20px;font-weight:400;letter-spacing:.2px;line-height:1;align-self:baseline}
+main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
 
 /* GPS card */
-.card{
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:12px;
-  padding:10px;
-}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+.card-layout{display:grid;grid-template-columns:56% 44%;align-items:center}
+.gps-info{min-width:0;padding-right:12px}
+.status{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--mut)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--warn);flex:none}
+[data-state=ok] .dot{background:var(--ok)}
+[data-state=bad] .dot{background:var(--bad)}
+.en{display:grid;grid-template-columns:max-content max-content;column-gap:16px;margin:7px 0 1px}
+.en small{display:block;font-size:11px;color:var(--mut)}
+.en b{font:600 14px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.35px}
+.road{display:flex;flex-direction:column;gap:2px;margin-top:6px}
+.road small{font-size:10px;color:var(--mut);letter-spacing:.25px}
+.road b{font-size:15px;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+.weather-panel{min-width:0;border-left:1px solid var(--line);padding-left:10px}
+.weather-title{font-size:10px;font-weight:700;letter-spacing:.35px;color:var(--mut);margin:0 0 6px}
+.weather-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 5px}
+.weather-row{display:grid;grid-template-columns:20px minmax(0,1fr);align-items:center;gap:4px;min-height:25px}
+.weather-icon{font-size:19px;line-height:1;text-align:center}
+.weather-time{font-size:11px;color:var(--ink);font-weight:600;white-space:nowrap}
+.weather-rain{display:block;font-size:9px;color:var(--mut);line-height:1.2}
+.weather-temp{display:none}
+.weather-message{font-size:10px;color:var(--mut);line-height:1.3}
+.map-credit{margin:18px 0 0;text-align:center;font-size:10px;color:var(--mut)}
 
-.card-layout{
-  display:grid;
-  grid-template-columns:56% 44%;
-  align-items:center;
-}
-
-.gps-info{
-  min-width:0;
-  padding-right:12px;
-}
-
-.status{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  font-size:14px;
-  color:var(--mut);
-}
-
-.dot{
-  width:10px;
-  height:10px;
-  border-radius:50%;
-  background:var(--warn);
-  flex:none;
-}
-
-[data-state=ok] .dot{
-  background:var(--ok);
-}
-
-[data-state=bad] .dot{
-  background:var(--bad);
-}
-
-.en{
-  display:grid;
-  grid-template-columns:max-content max-content;
-  column-gap:16px;
-  margin:7px 0 1px;
-}
-
-.en small{
-  display:block;
-  font-size:11px;
-  color:var(--mut);
-}
-
-.en b{
-  font:600 14px ui-monospace,SFMono-Regular,Menlo,monospace;
-  letter-spacing:-.35px;
-}
-
-.road{
-  display:flex;
-  flex-direction:column;
-  gap:2px;
-  margin-top:6px;
-}
-
-.road small{
-  font-size:10px;
-  color:var(--mut);
-  letter-spacing:.25px;
-}
-
-.road b{
-  font-size:15px;
-  font-weight:700;
-  line-height:1.25;
-  overflow-wrap:anywhere;
-}
-
-.weather-panel{
-  min-width:0;
-  border-left:1px solid var(--line);
-  padding-left:10px;
-}
-
-.weather-title{
-  font-size:10px;
-  font-weight:700;
-  letter-spacing:.35px;
-  color:var(--mut);
-  margin:0 0 6px;
-}
-
-.weather-list{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:7px 5px;
-}
-
-.weather-row{
-  display:grid;
-  grid-template-columns:20px minmax(0,1fr);
-  align-items:center;
-  gap:4px;
-  min-height:25px;
-}
-
-.weather-icon{
-  font-size:19px;
-  line-height:1;
-  text-align:center;
-}
-
-.weather-time{
-  font-size:11px;
-  color:var(--ink);
-  font-weight:600;
-  white-space:nowrap;
-}
-
-.weather-rain{
-  display:block;
-  font-size:9px;
-  color:var(--mut);
-  line-height:1.2;
-}
-
-.weather-temp{
-  display:none;
-}
-
-.weather-message{
-  font-size:10px;
-  color:var(--mut);
-  line-height:1.3;
-}
-
-.map-credit{
-  margin:18px 0 0;
-  text-align:center;
-  font-size:10px;
-  color:var(--mut);
-}
+/* Upload status + settings. 16px inputs stop iPhone zooming in when typing */
+.up{margin:10px 0 0;font-size:13px;font-weight:600;text-align:center;color:var(--mut)}
+.up.ok{color:var(--ok)} .up.warn{color:var(--warn)} .up.bad{color:var(--bad)}
+.up .btn{padding:4px 10px;font-size:12px;margin-left:4px}
+.setup{margin-top:10px;font-size:14px}
+.setup summary{cursor:pointer;font-weight:600}
+.setup label{display:block;margin-top:8px;font-size:12px;color:var(--mut)}
+.setup input{display:block;width:100%;margin-top:2px;padding:8px;font:inherit;font-size:16px;border:1px solid var(--line);border-radius:8px}
+.setup .btn{margin-top:10px}
+.st-ok{color:var(--ok)}
+.st-wait{color:var(--bad);font-weight:600}
 
 /* Take photo */
-.take{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  width:100%;
-  margin:16px 0 6px;
-  padding:20px;
-  font-family:inherit;
-  font-size:21px;
-  font-weight:700;
-  background:var(--acc);
-  color:#fff;
-  border:0;
-  border-radius:14px;
-  box-shadow:0 3px 0 var(--acc2);
-  cursor:pointer;
-}
-
-.take:active{
-  transform:translateY(2px);
-  box-shadow:0 1px 0 var(--acc2);
-}
-
-.hint{
-  margin:0;
-  text-align:center;
-  font-size:13px;
-  color:var(--mut);
-}
+.take{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:16px 0 6px;padding:20px;font-family:inherit;font-size:21px;font-weight:700;background:var(--acc);color:#fff;border:0;border-radius:14px;box-shadow:0 3px 0 var(--acc2);cursor:pointer}
+.take:active{transform:translateY(2px);box-shadow:0 1px 0 var(--acc2)}
+.hint{margin:0;text-align:center;font-size:13px;color:var(--mut)}
 
 /* Live camera */
-.live{
-  margin-top:16px;
-}
-
-.cam{
-  position:relative;
-  background:#000;
-  border-radius:14px;
-  overflow:hidden;
-  height:55vh;
-  width:100%;
-}
-
-.cam video{
-  width:100%;
-  height:100%;
-  object-fit:contain;
-  display:block;
-}
-
-.cam video.shot{
-  animation:flash .25s;
-}
-
-@keyframes flash{
-  from{opacity:.2}
-  to{opacity:1}
-}
-
-.shutter{
-  display:block;
-  margin:14px auto 6px;
-  width:80px;
-  height:80px;
-  border-radius:50%;
-  border:5px solid var(--ink);
-  background:var(--acc);
-  cursor:pointer;
-}
-
-.shutter:active{
-  transform:scale(.94);
-}
-
-.shutter:disabled{
-  opacity:.5;
-}
+.live{margin-top:16px}
+.cam{position:relative;background:#000;border-radius:14px;overflow:hidden;height:55vh;width:100%}
+.cam video{width:100%;height:100%;object-fit:contain;display:block}
+.cam video.shot{animation:flash .25s}
+@keyframes flash{from{opacity:.2}to{opacity:1}}
+.shutter{display:block;margin:14px auto 6px;width:80px;height:80px;border-radius:50%;border:5px solid var(--ink);background:var(--acc);cursor:pointer}
+.shutter:active{transform:scale(.94)}
+.shutter:disabled{opacity:.5}
 
 /* Photos */
-.bar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:8px;
-  flex-wrap:wrap;
-  margin:26px 0 12px;
-}
-
-.bar h2{
-  margin:0;
-  font-size:18px;
-}
-
-.tools{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-}
-
-.btn{
-  font:inherit;
-  font-size:14px;
-  font-weight:600;
-  padding:9px 14px;
-  border-radius:9px;
-  border:1.5px solid var(--ink);
-  background:var(--card);
-  color:var(--ink);
-  cursor:pointer;
-}
-
-.btn.pri{
-  background:var(--ink);
-  color:#fff;
-}
-
-.btn.link{
-  border:0;
-  background:none;
-  color:var(--bad);
-  font-weight:500;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(165px,1fr));
-  gap:12px;
-}
-
-.tile{
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:12px;
-  overflow:hidden;
-  display:flex;
-  flex-direction:column;
-}
-
-.tile img{
-  width:100%;
-  aspect-ratio:4/3;
-  object-fit:cover;
-  display:block;
-  cursor:zoom-in;
-  background:#dde3e7;
-}
-
-.meta{
-  padding:8px 10px 2px;
-  font-size:12px;
-  color:var(--mut);
-  display:grid;
-  gap:1px;
-}
-
-.meta b{
-  color:var(--ink);
-  font-size:13px;
-}
-
-.acts{
-  display:flex;
-  gap:6px;
-  padding:6px 10px 0;
-}
-
-.acts .btn{
-  flex:1;
-  padding:8px 6px;
-  font-size:13px;
-}
-
-.del{
-  margin:2px 10px 6px;
-  padding:6px;
-  font-size:13px;
-}
-
-.empty{
-  border:2px dashed var(--line);
-  border-radius:12px;
-  padding:28px 16px;
-  text-align:center;
-  color:var(--mut);
-}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:26px 0 12px}
+.bar h2{margin:0;font-size:18px}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font:inherit;font-size:14px;font-weight:600;padding:9px 14px;border-radius:9px;border:1.5px solid var(--ink);background:var(--card);color:var(--ink);cursor:pointer}
+.btn.pri{background:var(--ink);color:#fff}
+.btn.link{border:0;background:none;color:var(--bad);font-weight:500}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:12px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.tile img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;cursor:zoom-in;background:#dde3e7}
+.meta{padding:8px 10px 2px;font-size:12px;color:var(--mut);display:grid;gap:1px}
+.meta b{color:var(--ink);font-size:13px}
+.acts{display:flex;gap:6px;padding:6px 10px 0}
+.acts .btn{flex:1;padding:8px 6px;font-size:13px}
+.del{margin:2px 10px 6px;padding:6px;font-size:13px}
+.empty{border:2px dashed var(--line);border-radius:12px;padding:28px 16px;text-align:center;color:var(--mut)}
 
 /* Toast and full-size viewer */
-#toast{
-  position:fixed;
-  left:50%;
-  bottom:calc(20px + env(safe-area-inset-bottom));
-  transform:translateX(-50%);
-  background:var(--ink);
-  color:#fff;
-  padding:10px 16px;
-  border-radius:99px;
-  font-size:14px;
-  opacity:0;
-  pointer-events:none;
-  transition:opacity .2s;
-  max-width:90%;
-  text-align:center;
-}
-
-#toast.show{
-  opacity:1;
-}
-
-#view{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.92);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:9;
-}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:99px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90%;text-align:center}
+#toast.show{opacity:1}
+#view{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:9}
+#view img{max-width:100%;max-height:100%}
 
 /* Compact mobile layout */
 @media (max-width:600px){
-  header{
-    padding-left:10px;
-    padding-right:10px;
-  }
-
-  header h1{
-    max-width:none;
-  }
-
-  main{
-    padding:8px 10px calc(20px + env(safe-area-inset-bottom));
-  }
-
-  .card{
-    padding:8px;
-    border-radius:10px;
-  }
-
-  .card-layout{
-    grid-template-columns:56% 44%;
-  }
-
-  .gps-info{
-    padding-right:9px;
-  }
-
-  .status{
-    font-size:12px;
-    gap:5px;
-  }
-
-  .dot{
-    width:7px;
-    height:7px;
-  }
-
-  .en{
-    column-gap:12px;
-    margin:6px 0 1px;
-  }
-
-  .en small{
-    font-size:10px;
-  }
-
-  .en b{
-    font-size:13px;
-    line-height:1.25;
-    letter-spacing:-.45px;
-  }
-
-  .road{
-    margin-top:5px;
-  }
-
-  .road small{
-    font-size:9px;
-  }
-
-  .road b{
-    font-size:14px;
-  }
-
-  .weather-panel{
-    padding-left:8px;
-  }
-
-  .weather-title{
-    font-size:9px;
-    margin-bottom:5px;
-  }
-
-  .weather-list{
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:6px 3px;
-  }
-
-  .weather-row{
-    grid-template-columns:17px minmax(0,1fr);
-    gap:3px;
-    min-height:23px;
-  }
-
-  .weather-icon{
-    font-size:17px;
-  }
-
-  .weather-time{
-    font-size:10px;
-  }
-
-  .weather-rain{
-    font-size:8px;
-  }
-
-  .weather-message{
-    font-size:10px;
-  }
-
-  .live{
-    margin-top:8px;
-  }
-
-  .cam{
-    aspect-ratio:auto;
-    height:55vh;
-    max-height:none;
-    min-height:300px;
-    border-radius:10px;
-  }
-
-  .shutter{
-    width:62px;
-    height:62px;
-    border-width:4px;
-    margin:7px auto 2px;
-  }
-
-  .live .hint{
-    font-size:11px;
-  }
-
-  .take{
-    margin:9px 0 4px;
-    padding:14px;
-    font-size:18px;
-  }
-
-  .bar{
-    margin:18px 0 10px;
-  }
-}
-
-#view img{
-  max-width:100%;
-  max-height:100%;
+  header{padding-left:10px;padding-right:10px}
+  header h1{max-width:none}
+  main{padding:8px 10px calc(20px + env(safe-area-inset-bottom))}
+  .card{padding:8px;border-radius:10px}
+  .card-layout{grid-template-columns:56% 44%}
+  .gps-info{padding-right:9px}
+  .status{font-size:12px;gap:5px}
+  .dot{width:7px;height:7px}
+  .en{column-gap:12px;margin:6px 0 1px}
+  .en small{font-size:10px}
+  .en b{font-size:13px;line-height:1.25;letter-spacing:-.45px}
+  .road{margin-top:5px}
+  .road small{font-size:9px}
+  .road b{font-size:14px}
+  .weather-panel{padding-left:8px}
+  .weather-title{font-size:9px;margin-bottom:5px}
+  .weather-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 3px}
+  .weather-row{grid-template-columns:17px minmax(0,1fr);gap:3px;min-height:23px}
+  .weather-icon{font-size:17px}
+  .weather-time{font-size:10px}
+  .weather-rain{font-size:8px}
+  .weather-message{font-size:10px}
+  .live{margin-top:8px}
+  .cam{aspect-ratio:auto;height:55vh;max-height:none;min-height:300px;border-radius:10px}
+  .shutter{width:62px;height:62px;border-width:4px;margin:7px auto 2px}
+  .live .hint{font-size:11px}
+  .take{margin:9px 0 4px;padding:14px;font-size:18px}
+  .bar{margin:18px 0 10px}
 }
 </style>
 </head>
@@ -636,6 +171,17 @@ main{
       </div>
     </div>
   </section>
+
+  <!-- Upload status + settings (Telegram) -->
+  <div class="up" id="upStatus"></div>
+
+  <details class="card setup" id="setup">
+    <summary>Upload settings</summary>
+    <label>Your initials <input id="cfgName" maxlength="4" autocapitalize="characters" autocomplete="off"></label>
+    <label>Bot token <input id="cfgToken" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+    <label>Chat ID <input id="cfgChat" autocomplete="off" autocapitalize="off"></label>
+    <button class="btn pri" id="cfgSave">Save</button>
+  </details>
 
   <!-- Android live camera -->
   <section class="live" id="live" hidden>
@@ -1233,12 +779,15 @@ async function save(source, w, h, p) {
     e: en ? en.e : null,
     n: en ? en.n : null,
     time: now.getTime(),
+    ...uploadFields(),   // adds up:false (not uploaded yet), initials, running number
     name: `geocam_${stamp}${c ? '' : '_nogps'}.jpg`
   };
 
   await tx('readwrite', s => s.add(rec));
 
   render();
+
+  uploadPending();   // start sending straight away (not awaited)
 
   return rec;
 }
@@ -1261,6 +810,7 @@ function download(r) {
 
 async function render() {
   photos = (await tx('readonly', s => s.getAll())).reverse();
+  showUpStatus(photos.filter(r => r.up === false).length);   // refresh the "waiting to upload" line
 
   urls.forEach(URL.revokeObjectURL);
   urls = [];
@@ -1291,6 +841,7 @@ async function render() {
           timeStyle: 'short'
         })}</b>
         <span>${place}</span>
+        <span class="${r.up === true ? 'st-ok' : r.up === false ? 'st-wait' : ''}">${r.up === true ? '✓ Uploaded' : r.up === false ? '⏳ Not uploaded yet' : ''}</span>
         <span>${r.w ? `${r.w}×${r.h} · ${(r.blob.size / 1048576).toFixed(1)} MB` : ''}</span>
       </div>
       <div class="acts"></div>
@@ -1327,7 +878,7 @@ async function render() {
     add('Download', '', () => download(r));
 
     t.querySelector('.del').onclick = async () => {
-      if (confirm('Delete this photo?')) {
+      if (confirm(r.up === false ? '⚠ This photo has NOT been uploaded yet – deleting it loses it for good. Delete anyway?' : 'Delete this photo?')) {
         await tx('readwrite', s => s.delete(r.id));
         render();
       }
@@ -1349,11 +900,136 @@ $('dlAll').onclick = async () => {
 /* ---------- Delete all photos ---------- */
 
 $('delAll').onclick = async () => {
+  // Extra warning if any photos haven't been uploaded yet
+  const waiting = photos.filter(r => r.up === false).length;
+  if (waiting && !confirm(`⚠ ${waiting} photo${waiting > 1 ? 's have' : ' has'} NOT been uploaded yet and will be lost for good. Continue?`)) return;
+
   if (confirm(`Delete all ${photos.length} photos from this device? Make sure you’ve downloaded them first.`)) {
     await tx('readwrite', s => s.clear());
     render();
   }
 };
+
+/* ---------- Telegram upload ---------- */
+// Settings are stored on each phone (localStorage), NOT in this file,
+// so the bot token isn't visible in your public page source.
+let uploading = false, uploadPaused = null;   // uploadPaused = message shown when settings are wrong
+
+const cfg = () => { try { return JSON.parse(localStorage.getItem('geocamTG')) || {}; } catch { return {}; } };
+const cfgOk = () => { const c = cfg(); return !!(c.token && c.chat); };
+
+function saveCfg(c) {
+  try { localStorage.setItem('geocamTG', JSON.stringify(c)); } catch {}
+  uploadPaused = null;   // settings changed, so allow uploads again
+}
+
+// Running number per phone, so you can spot a missing photo (JC-013 then JC-015)
+function uploadFields() {
+  let seq = 0;
+  try {
+    seq = (parseInt(localStorage.getItem('geocamSeq'), 10) || 0) + 1;
+    localStorage.setItem('geocamSeq', seq);
+  } catch {}
+  return { up: false, by: cfg().name || '', seq };   // up:false = waiting to upload
+}
+
+const caption = r =>
+  `${r.by || 'GC'}-${String(r.seq).padStart(3, '0')}\n` +
+  (r.e != null ? `E ${r.e.toFixed(2)}  N ${r.n.toFixed(2)}` : 'No BNG coordinates') +
+  (r.acc != null ? `  (±${Math.round(r.acc)} m)` : '') +
+  `\nTaken ${new Date(r.time).toLocaleString()}`;
+
+async function uploadPending() {
+  if (uploading || uploadPaused || !db || !cfgOk() || !navigator.onLine) return;
+  uploading = true;
+  const c = cfg();
+
+  try {
+    // Only photos marked up:false are sent (older photos have no flag, so they're left alone)
+    const all = await tx('readonly', s => s.getAll());
+
+    for (const r of all.filter(r => r.up === false)) {
+      const fd = new FormData();
+      fd.append('chat_id', c.chat);
+      fd.append('caption', caption(r));
+      fd.append('document', r.blob, r.name);   // sendDocument keeps the original JPEG (sendPhoto recompresses)
+
+      let resp;
+      try {
+        resp = await fetch(`https://api.telegram.org/bot${c.token}/sendDocument`, { method: 'POST', body: fd });
+      } catch { break; }   // no signal: stop and retry later
+
+      if (resp.ok) {
+        r.up = true;   // Telegram confirmed it, so mark as uploaded
+        await tx('readwrite', s => s.put(r));
+      } else {
+        // 400/401/403/404 = wrong token or chat ID: stop retrying until settings are fixed
+        if ([400, 401, 403, 404].includes(resp.status)) uploadPaused = 'Upload settings look wrong – check them';
+        break;   // 429 (too fast) or server error: try again later
+      }
+
+      await new Promise(res => setTimeout(res, 1200));   // gentle pacing so Telegram doesn't throttle us
+    }
+  } finally {
+    uploading = false;
+  }
+
+  render();   // refresh ticks + status line
+}
+
+function showUpStatus(n) {
+  const el = $('upStatus');
+
+  if (!cfgOk()) {
+    el.className = 'up warn';
+    el.textContent = n ? `${n} photo${n > 1 ? 's' : ''} saved – add upload settings to send them` : 'Upload not set up yet';
+  } else if (uploadPaused) {
+    el.className = 'up bad';
+    el.textContent = uploadPaused;
+  } else if (n) {
+    el.className = 'up warn';
+    el.innerHTML = `${n} photo${n > 1 ? 's' : ''} waiting to upload · <button class="btn" id="upNow">Upload now</button>`;
+    $('upNow').onclick = uploadPending;
+  } else {
+    el.className = 'up ok';
+    el.textContent = 'No photos waiting to upload ✓';
+  }
+}
+
+function loadCfgForm() {
+  const c = cfg();
+  $('cfgName').value = c.name || '';
+  $('cfgToken').value = c.token || '';
+  $('cfgChat').value = c.chat || '';
+  $('setup').open = !cfgOk();   // panel stays open until set up
+}
+
+$('cfgSave').onclick = () => {
+  saveCfg({
+    name: $('cfgName').value.trim().toUpperCase(),
+    token: $('cfgToken').value.trim(),
+    chat: $('cfgChat').value.trim()
+  });
+  $('setup').open = false;
+  toast('Upload settings saved ✓');
+  render();
+  uploadPending();
+};
+
+// Retry triggers: signal comes back, app returns to the front, and every 20 seconds
+window.addEventListener('online', uploadPending);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) uploadPending(); });
+setInterval(uploadPending, 20000);
+
+// Setup link: https://your-site/#tg=TOKEN&chat=CHATID&n=JC saves the settings, then clears the link
+(() => {
+  const h = new URLSearchParams(location.hash.slice(1));
+  if (h.get('tg') && h.get('chat')) {
+    saveCfg({ token: h.get('tg'), chat: h.get('chat'), name: (h.get('n') || '').toUpperCase() });
+    history.replaceState(null, '', location.pathname + location.search);
+    toast('Upload settings saved ✓');
+  }
+})();
 
 /* ---------- Start application ---------- */
 
@@ -1370,6 +1046,9 @@ $('delAll').onclick = async () => {
 
   if (db) render();
 
+  loadCfgForm();    // fill in the upload settings form
+  uploadPending();  // send anything left over from last time
+
   startGPS();
 
   if (LIVE) {
@@ -1380,4 +1059,3 @@ $('delAll').onclick = async () => {
 </script>
 </body>
 </html>
-
