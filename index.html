@@ -22,19 +22,19 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 
 /* GPS card */
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
-.card-layout{display:block}
-.gps-info{min-width:0}
+.card-layout{display:grid;grid-template-columns:56% 44%;align-items:center}
+.gps-info{min-width:0;padding-right:12px}
 .status{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--mut)}
 .dot{width:10px;height:10px;border-radius:50%;background:var(--warn);flex:none}
 [data-state=ok] .dot{background:var(--ok)}
 [data-state=bad] .dot{background:var(--bad)}
-.road-row{display:flex;align-items:center;gap:14px;margin-top:7px}
-.road{display:flex;flex:1;min-width:0;flex-direction:column;gap:2px}
-.road small,.easting small,.northing small{display:block;font-size:10px;color:var(--mut);letter-spacing:.25px}
-.road b{font-size:15px;font-weight:700;line-height:1.2;overflow-wrap:anywhere}
-.easting{flex:none;min-width:112px}
-.easting b,.northing b{font:600 13px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.35px}
-.northing{margin-top:5px}
+.road{display:flex;flex-direction:column;gap:2px;margin-top:6px}
+.road small{font-size:10px;color:var(--mut);letter-spacing:.25px}
+.road b{font-size:15px;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+.gps-coords{min-width:0;border-left:1px solid var(--line);padding-left:10px}
+.en{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:8px;margin:0}
+.en small{display:block;font-size:10px;color:var(--mut)}
+.en b{font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.5px;white-space:nowrap}
 .map-credit{margin:18px 0 0;text-align:center;font-size:10px;color:var(--mut)}
 
 /* Upload status + settings. 16px inputs stop iPhone zooming in when typing */
@@ -93,31 +93,23 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
   header h1{max-width:none}
   main{padding:8px 10px calc(20px + env(safe-area-inset-bottom))}
   .card{padding:8px;border-radius:10px}
+  .card-layout{grid-template-columns:56% 44%}
   .gps-info{padding-right:9px}
   .status{font-size:12px;gap:5px}
   .dot{width:7px;height:7px}
-  .en{column-gap:12px;margin:6px 0 1px}
-  .en small{font-size:10px}
-  .en b{font-size:13px;line-height:1.25;letter-spacing:-.45px}
   .road{margin-top:5px}
   .road small{font-size:9px}
   .road b{font-size:14px}
-  .take{margin:9px 0 4px;padding:14px;font-size:18px}
+  .gps-coords{padding-left:8px}
+  .en{column-gap:6px;margin:0}
+  .en small{font-size:9px}
+  .en b{font-size:11px;letter-spacing:-.55px}
   .live{margin-top:8px}
-  .cam{height:clamp(150px,calc(100svh - 300px),420px);min-height:0;max-height:none;border-radius:10px}
-  .shutter{width:54px;height:54px;border-width:4px;margin:6px auto 1px}
-  .live .hint{font-size:11px;margin:0}
+  .cam{aspect-ratio:auto;height:55vh;max-height:none;min-height:300px;border-radius:10px}
+  .shutter{width:62px;height:62px;border-width:4px;margin:7px auto 2px}
+  .live .hint{font-size:11px}
+  .take{margin:9px 0 4px;padding:14px;font-size:18px}
   .bar{margin:18px 0 10px}
-
-@media (max-width:600px) and (max-height:760px){
-  header{padding-top:calc(9px + env(safe-area-inset-top));padding-bottom:9px}
-  header h1,header h1 strong{font-size:24px}
-  main{padding-top:6px}
-  .card{padding:7px}
-  .setup{margin-top:6px}
-  .up{margin:5px 0 0;font-size:11px}
-  .cam{height:clamp(120px,calc(100svh - 270px),340px)}
-  .shutter{width:48px;height:48px;margin:4px auto 0}
 }
 </style>
 </head>
@@ -138,33 +130,28 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
           <span class="dot"></span>
           <span id="gpsStatus">Finding your location…</span>
         </div>
-        <div class="road-row">
-          <div class="road">
-            <small>APPROXIMATE ROAD LOCATION</small>
-            <b id="roadName">Locating road…</b>
-          </div>
-          <div class="easting">
-            <small>EASTING</small>
+
+        <div class="road">
+          <small>APPROXIMATE ROAD LOCATION</small>
+          <b id="roadName">Locating road…</b>
+        </div>
+
+      </div>
+
+      <div class="gps-coords">
+        <div class="en">
+          <div>
+            <small>Easting</small>
             <b id="gpsE">–</b>
           </div>
-        </div>
-        <div class="northing">
-          <small>NORTHING</small>
-          <b id="gpsN">–</b>
+          <div>
+            <small>Northing</small>
+            <b id="gpsN">–</b>
+          </div>
         </div>
       </div>
     </div>
   </section>
-
-  <!-- Android live camera -->
-  <section class="live" id="live" hidden>
-    <div class="cam">
-      <video id="video" autoplay playsinline muted></video>
-    </div>
-    <button class="shutter" id="shutter" aria-label="Take photo"></button>
-    <p class="hint">Tap the round button to take a photo.</p>
-  </section>
-
 
   <!-- Upload status + settings (Telegram) -->
   <div class="up" id="upStatus"></div>
@@ -176,6 +163,15 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
     <label>Chat ID <input id="cfgChat" autocomplete="off" autocapitalize="off"></label>
     <button class="btn pri" id="cfgSave">Save</button>
   </details>
+
+  <!-- Android live camera -->
+  <section class="live" id="live" hidden>
+    <div class="cam">
+      <video id="video" autoplay playsinline muted></video>
+    </div>
+    <button class="shutter" id="shutter" aria-label="Take photo"></button>
+    <p class="hint">Tap the round button to take a photo.</p>
+  </section>
 
   <!-- Shown only if Android live view fails -->
   <button class="btn pri" id="retryCam" hidden style="width:100%;margin-top:16px;padding:14px">Retry live camera</button>
