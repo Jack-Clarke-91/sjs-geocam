@@ -101,7 +101,8 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 .report-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .report-btn{display:flex;align-items:center;gap:10px;text-align:left;padding:14px 12px;font:inherit;color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:12px;cursor:pointer}
 .report-btn:active{background:#f0f4f6}
-.report-btn b{display:block;font-size:14px;white-space:nowrap}
+.report-btn b{display:block;font-size:14px}
+.report-btn small{display:block;font-size:11px;color:var(--mut);margin-top:2px}
 .report-ico{font-size:26px;color:var(--acc);line-height:1}
 
 /* Report tile */
@@ -188,7 +189,9 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
   .take{margin:9px 0 4px;padding:14px;font-size:18px}
   .bar{margin:18px 0 10px}
   .rf-grid-3{grid-template-columns:1fr 1fr}
-  .report-buttons{grid-template-columns:1fr}
+  .report-btn{padding:12px 10px}
+  .report-btn b{font-size:13px}
+  .report-btn small{font-size:10px}
 }
 </style>
 </head>
@@ -282,11 +285,11 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
     <div class="report-buttons">
       <button type="button" class="report-btn" data-report="manhole">
         <span class="report-ico">◉</span>
-        <span><b>Start New Manhole Report</b></span>
+        <span><b>Manhole Report</b><small>Start new report</small></span>
       </button>
       <button type="button" class="report-btn" data-report="chamber">
         <span class="report-ico">◎</span>
-        <span><b>Start New Chamber Report</b></span>
+        <span><b>Chamber Report</b><small>Start new report</small></span>
       </button>
     </div>
 
