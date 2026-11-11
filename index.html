@@ -97,14 +97,26 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 .report-btn small{display:block;font-size:11px;color:var(--mut)}
 .report-ico{font-size:26px;color:var(--acc);line-height:1}
 
-.report-overlay{position:fixed;inset:0;background:rgba(20,33,43,.4);z-index:30;display:flex}
+.report-overlay{position:fixed;inset:0;background:rgba(20,33,43,.4);z-index:30;display:flex;overflow:hidden}
 .report-overlay[hidden]{display:none}
-.report-sheet{background:var(--bg);width:100%;max-width:720px;margin:0 auto;display:flex;flex-direction:column;height:100vh;max-height:100vh}
-.report-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;background:#151b21;color:#e8e7e1}
+.report-sheet{
+  background:var(--bg);
+  width:100%;
+  max-width:720px;
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+  height:100vh;            /* fallback for older browsers */
+  height:100dvh;           /* dynamic viewport – no hidden footer on mobile */
+  max-height:100vh;
+  max-height:100dvh;
+  overflow:hidden;
+}
+.report-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;background:#151b21;color:#e8e7e1;flex:none}
 .report-head h2{margin:0;font-size:17px;color:#26B3BE;letter-spacing:.5px}
 .report-head .btn{padding:6px 12px;font-size:13px;border-color:#3a424a;color:#e8e7e1;background:transparent}
-.report-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px calc(12px + env(safe-area-inset-right)) 12px calc(12px + env(safe-area-inset-left))}
-.report-foot{display:flex;gap:8px;padding:10px calc(12px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));background:var(--card);border-top:1px solid var(--line)}
+.report-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px calc(12px + env(safe-area-inset-right)) 12px calc(12px + env(safe-area-inset-left))}
+.report-foot{display:flex;gap:8px;padding:10px calc(12px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));background:var(--card);border-top:1px solid var(--line);flex:none}
 .report-foot .btn{flex:1;padding:13px;font-size:15px}
 .report-form[hidden]{display:none}
 
@@ -203,21 +215,6 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
     </div>
   </section>
 
-  <!-- Survey reports -->
-  <section class="reports">
-    <h2>Survey Reports</h2>
-    <div class="report-buttons">
-      <button type="button" class="report-btn" data-report="manhole">
-        <span class="report-ico">◉</span>
-        <span><b>Manhole Report</b><small>Chamber survey card</small></span>
-      </button>
-      <button type="button" class="report-btn" data-report="chamber">
-        <span class="report-ico">◎</span>
-        <span><b>Chamber Report</b><small>Utility chamber card</small></span>
-      </button>
-    </div>
-  </section>
-
   <!-- Upload status + settings (Telegram) -->
   <div class="up" id="upStatus"></div>
 
@@ -252,6 +249,21 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 
   <p class="hint" id="takeHint">Opens your camera. Take the photo, then confirm it (“Use Photo” on iPhone, ✓ on Android).</p>
   <input type="file" id="cam" accept="image/*" capture="environment" hidden>
+
+  <!-- Survey reports (sits naturally below whichever camera UI is active) -->
+  <section class="reports">
+    <h2>Survey Reports</h2>
+    <div class="report-buttons">
+      <button type="button" class="report-btn" data-report="manhole">
+        <span class="report-ico">◉</span>
+        <span><b>Manhole Report</b><small>Chamber survey card</small></span>
+      </button>
+      <button type="button" class="report-btn" data-report="chamber">
+        <span class="report-ico">◎</span>
+        <span><b>Chamber Report</b><small>Utility chamber card</small></span>
+      </button>
+    </div>
+  </section>
 
   <!-- Photo controls -->
   <div class="bar">
