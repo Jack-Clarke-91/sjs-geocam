@@ -101,7 +101,7 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 .report-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .report-btn{display:flex;align-items:center;gap:10px;text-align:left;padding:14px 12px;font:inherit;color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:12px;cursor:pointer}
 .report-btn:active{background:#f0f4f6}
-.report-btn b{display:block;font-size:14px}
+.report-btn b{display:block;font-size:14px;white-space:nowrap}
 .report-ico{font-size:26px;color:var(--acc);line-height:1}
 
 /* Report tile */
@@ -188,8 +188,7 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
   .take{margin:9px 0 4px;padding:14px;font-size:18px}
   .bar{margin:18px 0 10px}
   .rf-grid-3{grid-template-columns:1fr 1fr}
-  .report-btn{padding:12px 10px}
-  .report-btn b{font-size:13px}
+  .report-buttons{grid-template-columns:1fr}
 }
 </style>
 </head>
