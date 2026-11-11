@@ -13,7 +13,6 @@
 <style>
 :root{--bg:#f1f4f6;--card:#fff;--ink:#14212b;--mut:#5d6b76;--line:#d9e0e5;--acc:#d9480f;--acc2:#a83a0a;--ok:#1b7a4b;--warn:#b26a00;--bad:#c62828}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-[hidden]{display:none !important}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Calibri,"Segoe UI",sans-serif}
 header{background-color:#151b21;background-image:linear-gradient(rgba(10,15,20,.35) 1px,transparent 1px),linear-gradient(90deg,rgba(10,15,20,.35) 1px,transparent 1px);background-size:20px 20px;color:#e8e7e1;padding:calc(14px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 14px calc(16px + env(safe-area-inset-left));border-bottom:1px solid #252c33}
 header h1{font-family:Calibri,"Segoe UI",sans-serif;font-size:27px;font-weight:700;letter-spacing:1px;color:#26B3BE;width:100%;max-width:688px;margin:0 auto;padding:0 12px;display:flex;align-items:baseline;justify-content:space-between;line-height:1}
@@ -49,7 +48,7 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 .up{margin:6px 0 0;font-size:13px;font-weight:600;text-align:center;color:var(--mut);line-height:1.25}
 .up.ok{color:var(--ok)} .up.warn{color:var(--warn)} .up.bad{color:var(--bad)}
 .up .btn{padding:4px 10px;font-size:12px;margin-left:4px}
-.setup{margin-top:8px;font-size:14px}
+.setup{margin-top:10px;font-size:14px}
 .setup summary{cursor:pointer;font-weight:600}
 .setup label{display:block;margin-top:8px;font-size:12px;color:var(--mut)}
 .setup input{display:block;width:100%;margin-top:2px;padding:8px;font:inherit;font-size:16px;border:1px solid var(--line);border-radius:8px}
@@ -104,11 +103,6 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 .report-btn b{display:block;font-size:14px}
 .report-btn small{display:block;font-size:11px;color:var(--mut)}
 .report-ico{font-size:26px;color:var(--acc);line-height:1}
-
-/* Report tiles */
-.rep-tile{padding:10px 10px 6px}
-.rep-type{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--acc);text-transform:uppercase;margin-bottom:4px}
-.rep-tile .meta{padding:0;margin-bottom:4px}
 
 .report-overlay{position:fixed;inset:0;background:rgba(20,33,43,.4);z-index:30;display:flex;overflow:hidden}
 .report-overlay[hidden]{display:none}
@@ -180,7 +174,6 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
   .location-bar small{font-size:9px}
   .location-bar b{font-size:13px}
   .location-bar .btn{padding:5px 9px;font-size:11px}
-  .setup{margin-top:6px}
   .live{margin-top:8px}
   .cam{aspect-ratio:auto;height:55vh;max-height:none;min-height:300px;border-radius:10px}
   .shutter{width:62px;height:62px;border-width:4px;margin:7px auto 2px}
@@ -277,7 +270,7 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
   <p class="hint" id="takeHint">Opens your camera. Take the photo, then confirm it (“Use Photo” on iPhone, ✓ on Android).</p>
   <input type="file" id="cam" accept="image/*" capture="environment" hidden>
 
-  <!-- Survey reports -->
+  <!-- Survey reports (sits naturally below whichever camera UI is active) -->
   <section class="reports">
     <h2>Survey Reports (<span id="repCount">0</span>)</h2>
     <div class="report-buttons">
@@ -290,12 +283,6 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
         <span><b>Chamber Report</b><small>Utility chamber card</small></span>
       </button>
     </div>
-    <div class="tools" id="repTools" hidden style="margin-top:12px;justify-content:flex-end">
-      <button class="btn" id="dlAllReports">Download all</button>
-      <button class="btn link" id="delAllReports">Delete all</button>
-    </div>
-    <div class="empty" id="repEmpty" style="margin-top:12px">No reports yet. Tap a report type above to start one.</div>
-    <div class="grid" id="repGrid" style="margin-top:12px"></div>
   </section>
 
   <!-- Photo controls -->
@@ -528,7 +515,7 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 <script>
 const $ = id => document.getElementById(id);
 
-let db, pos = null, tapPos = null, photos = [], reports = [], urls = [], stream = null, imgCap = null;
+let db, pos = null, tapPos = null, photos = [], urls = [], stream = null, imgCap = null;
 
 // Device detection
 const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -554,16 +541,10 @@ function toast(msg, sticky) {
 /* ---------- Storage: IndexedDB ---------- */
 function openDB() {
   return new Promise((res, rej) => {
-    const r = indexedDB.open('geocam', 2);
+    const r = indexedDB.open('geocam', 1);
 
     r.onupgradeneeded = () => {
-      const d = r.result;
-      if (!d.objectStoreNames.contains('photos')) {
-        d.createObjectStore('photos', { keyPath: 'id', autoIncrement: true });
-      }
-      if (!d.objectStoreNames.contains('reports')) {
-        d.createObjectStore('reports', { keyPath: 'id', autoIncrement: true });
-      }
+      r.result.createObjectStore('photos', { keyPath: 'id', autoIncrement: true });
     };
 
     r.onsuccess = () => res(r.result);
@@ -571,17 +552,15 @@ function openDB() {
   });
 }
 
-function txStore(storeName, mode, fn) {
+function tx(mode, fn) {
   return new Promise((res, rej) => {
-    const t = db.transaction(storeName, mode);
-    const req = fn(t.objectStore(storeName));
+    const t = db.transaction('photos', mode);
+    const req = fn(t.objectStore('photos'));
+
     t.oncomplete = () => res(req.result);
     t.onerror = () => rej(t.error);
   });
 }
-
-const tx = (mode, fn) => txStore('photos', mode, fn);
-const txReports = (mode, fn) => txStore('reports', mode, fn);
 
 /* ---------- Site location (job name) ---------- */
 
@@ -592,6 +571,15 @@ function updateLocationDisplay() {
   const loc = getLocation();
   $('locName').textContent = loc || 'Not set';
   $('newLocBtn').textContent = loc ? 'Start New Location' : 'Set Location';
+}
+
+/* ---------- Reports counter ---------- */
+
+const getReportCount = () => { try { return parseInt(localStorage.getItem('geocamReportCount') || '0', 10) || 0; } catch { return 0; } };
+const setReportCount = (n) => { try { localStorage.setItem('geocamReportCount', String(n)); } catch {} };
+
+function updateReportCount() {
+  $('repCount').textContent = getReportCount();
 }
 
 /* ---------- British National Grid conversion ---------- */
@@ -1309,248 +1297,87 @@ $('cfgSave').onclick = () => {
   $('setup').open = false;
   toast('Upload settings saved ✓');
   render();
-  renderReports();
   uploadPending();
-  uploadPendingReports();
 };
 
-/* ---------- Reports: storage, tiles, download, retry ---------- */
+// Retry triggers: signal comes back, app returns to the front, and every 20 seconds
+window.addEventListener('online', uploadPending);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) uploadPending(); });
+setInterval(uploadPending, 20000);
 
-function escapeHTML(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-function toPlainText(html) {
-  return String(html)
-    .replace(/<b>([\s\S]*?)<\/b>/g, '$1')
-    .replace(/<i>([\s\S]*?)<\/i>/g, '$1')
-    .replace(/<[^>]*>/g, '')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>');
-}
-
-function downloadReport(r) {
-  const plain = toPlainText(r.text);
-  const blob = new Blob([plain], { type: 'text/plain;charset=utf-8' });
-  const u = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-
-  a.href = u;
-  a.download = r.name;
-
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-
-  setTimeout(() => URL.revokeObjectURL(u), 10000);
-}
-
-async function renderReports() {
-  reports = (await txReports('readonly', s => s.getAll())).reverse();
-
-  $('repCount').textContent = reports.length;
-  $('repEmpty').hidden = reports.length > 0;
-  $('repTools').hidden = reports.length === 0;
-
-  const grid = $('repGrid');
-  grid.innerHTML = '';
-
-  for (const r of reports) {
-    const t = document.createElement('div');
-    t.className = 'tile rep-tile';
-
-    const typeLabel = r.type === 'manhole' ? '◉ Manhole Report' : '◎ Chamber Report';
-
-    t.innerHTML = `
-      <div class="rep-type">${typeLabel}</div>
-      <div class="meta">
-        <b>${new Date(r.time).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</b>
-        <span>${r.location ? '📍 ' + escapeHTML(r.location) : 'No location set'}</span>
-        <span class="${r.up ? 'st-ok' : 'st-wait'}">${r.up ? '✓ Uploaded' : '⏳ Not uploaded yet'}</span>
-      </div>
-      <div class="acts"></div>
-    `;
-
-    const acts = t.querySelector('.acts');
-
-    const add = (label, cls, fn) => {
-      const b = document.createElement('button');
-      b.className = 'btn ' + cls;
-      b.textContent = label;
-      b.onclick = fn;
-      acts.appendChild(b);
-    };
-
-    add('Download', '', () => downloadReport(r));
-
-    add('Delete', 'link', async () => {
-      if (confirm(r.up === false
-        ? '⚠ This report has NOT been uploaded yet – deleting it loses it for good. Delete anyway?'
-        : 'Delete this report?')) {
-        await txReports('readwrite', s => s.delete(r.id));
-        renderReports();
-      }
-    });
-
-    grid.appendChild(t);
+// Setup link: https://your-site/#tg=TOKEN&chat=CHATID&n=JC saves the settings, then clears the link
+(() => {
+  const h = new URLSearchParams(location.hash.slice(1));
+  if (h.get('tg') && h.get('chat')) {
+    saveCfg({ token: h.get('tg'), chat: h.get('chat'), name: (h.get('n') || '').toUpperCase() });
+    history.replaceState(null, '', location.pathname + location.search);
+    toast('Upload settings saved ✓');
   }
+})();
+
+/* =========================================================
+   SURVEY REPORTS (Manhole / Chamber)
+   ========================================================= */
+
+const PIPE_COLS = [
+  { key: 'depth',         label: 'Depth from Cover (m)',        type: 'number', step: '0.01' },
+  { key: 'ref',           label: 'Upstream/Downstream MH Ref',  type: 'text' },
+  { key: 'shape',         label: 'Shape',                       type: 'text' },
+  { key: 'height',        label: 'Size Height (mm)',            type: 'number' },
+  { key: 'width',         label: 'Size Width (mm)',             type: 'number' },
+  { key: 'bed',           label: 'Pipe Bed',                    type: 'text' },
+  { key: 'lining',        label: 'Lining Mat',                  type: 'text' },
+  { key: 'backDropDia',   label: 'Back Drop Dia (mm)',          type: 'number' },
+  { key: 'backDropDepth', label: 'Back Drop Depth (m)',         type: 'number', step: '0.01' },
+];
+
+function buildPipeCards(container) {
+  const prefix  = container.dataset.pipes;
+  const letters = container.dataset.letters.split(',');
+  container.innerHTML = letters.map(l => {
+    const body = PIPE_COLS.map(c => `
+      <div>
+        <label>${c.label}</label>
+        <input name="${prefix}_${l}_${c.key}" type="${c.type}" ${c.step ? `step="${c.step}"` : ''} ${c.type === 'number' ? 'inputmode="decimal"' : ''}>
+      </div>`).join('');
+    return `<details class="pipe-card">
+      <summary>Pipe ${l} <span class="pipe-summary-fill">(empty)</span></summary>
+      <div class="pipe-body rf-grid-2">${body}</div>
+    </details>`;
+  }).join('');
 }
 
-$('dlAllReports').onclick = async () => {
-  for (const r of reports) {
-    downloadReport(r);
-    await new Promise(res => setTimeout(res, 500));
-  }
-};
-
-$('delAllReports').onclick = async () => {
-  const waiting = reports.filter(r => r.up === false).length;
-  if (waiting && !confirm(`⚠ ${waiting} report${waiting > 1 ? 's have' : ' has'} NOT been uploaded yet and will be lost for good. Continue?`)) return;
-
-  if (confirm(`Delete all ${reports.length} reports from this device? Make sure you’ve downloaded them first.`)) {
-    await txReports('readwrite', s => s.clear());
-    renderReports();
-  }
-};
-
-async function uploadPendingReports() {
-  if (uploading || uploadPaused || !db || !cfgOk() || !navigator.onLine) return;
-  uploading = true;
-  let changed = false;
-
-  try {
-    const all = await txReports('readonly', s => s.getAll());
-    const pending = all.filter(x => x.up === false);
-
-    if (!pending.length) { uploading = false; return; }
-
-    for (const r of pending) {
-      const ok = await sendTelegramText(r.text);
-      if (ok) {
-        r.up = true;
-        await txReports('readwrite', s => s.put(r));
-        changed = true;
-      } else {
-        break;
-      }
-      await new Promise(res => setTimeout(res, 1200));
-    }
-  } finally {
-    uploading = false;
-  }
-
-  if (changed) renderReports();
+function buildFaceCards(container) {
+  const prefix = container.dataset.faces;
+  const faces  = container.dataset.facesLetters.split(',');
+  const ducts  = container.dataset.ducts.split(',');
+  container.innerHTML = faces.map(f => {
+    const body = ducts.map(d => `
+      <div class="rf-grid-2" style="margin-top:6px">
+        <div><label>Duct ${d} — Depth (m)</label>
+          <input name="${prefix}_${f}_${d}_depth" type="number" step="0.01" inputmode="decimal"></div>
+        <div><label>Duct ${d} — Diameter (mm)</label>
+          <input name="${prefix}_${f}_${d}_dia" type="number" inputmode="numeric"></div>
+      </div>`).join('');
+    return `<details class="pipe-card">
+      <summary>Face ${f} <span class="pipe-summary-fill">(empty)</span></summary>
+      <div class="pipe-body">${body}</div>
+    </details>`;
+  }).join('');
 }
 
-/* ---- Report open / close ---- */
+document.querySelectorAll('[data-pipes]').forEach(buildPipeCards);
+document.querySelectorAll('[data-faces]').forEach(buildFaceCards);
 
-let currentReport = null;
-let draftTimer;
+/* ---- Helpers ---- */
 
-function openReport(type) {
-  currentReport = type;
-  $('reportTitle').textContent = type === 'manhole' ? 'Manhole Report' : 'Chamber Report';
-  document.querySelectorAll('.report-form').forEach(f => {
-    f.hidden = f.dataset.report !== type;
-  });
-  $('reportOverlay').hidden = false;
-  document.body.style.overflow = 'hidden';
-  restoreDraft(type);
-  $('reportBody').scrollTop = 0;
-  history.pushState({ report: type }, '');
+function updatePipeSummary(details) {
+  const fill = details.querySelector('.pipe-summary-fill');
+  if (!fill) return;
+  const inputs = details.querySelectorAll('input');
+  const filled = Array.from(inputs).filter(i => i.value).length;
+  fill.textContent = filled ? `(${filled}/${inputs.length} filled)` : '(empty)';
 }
-
-function hideOverlay() {
-  $('reportOverlay').hidden = true;
-  document.body.style.overflow = '';
-  currentReport = null;
-}
-
-document.querySelectorAll('.report-btn').forEach(btn => {
-  btn.onclick = () => openReport(btn.dataset.report);
-});
-
-$('reportClose').onclick = () => {
-  if (!currentReport) return;
-  saveDraft(currentReport);
-  if (history.state && history.state.report) history.back();
-  else hideOverlay();
-};
-
-window.addEventListener('popstate', () => {
-  if (!$('reportOverlay').hidden) hideOverlay();
-});
-
-/* ---- Chip toggling, draft autosave, pipe summaries ---- */
-
-document.addEventListener('change', e => {
-  if (e.target.matches('.rf-chips input')) {
-    e.target.closest('label').classList.toggle('chip-on', e.target.checked);
-  }
-});
-
-document.addEventListener('input', e => {
-  if (!currentReport) return;
-  const det = e.target.closest('.pipe-card');
-  if (det) updatePipeSummary(det);
-  clearTimeout(draftTimer);
-  draftTimer = setTimeout(() => saveDraft(currentReport), 400);
-});
-
-/* ---- Telegram text sender (HTML formatted, handles >4096-char messages) ---- */
-
-async function sendTelegramText(html) {
-  const c = cfg();
-  if (!c.token || !c.chat) { toast('Set up upload settings first'); return false; }
-
-  const MAX = 3800;
-  const chunks = [];
-  let cur = '';
-
-  for (const line of html.split('\n')) {
-    // Overly long single line (e.g. a giant remarks field): strip tags and split safely
-    if (line.length > MAX - 100) {
-      if (cur) { chunks.push(cur); cur = ''; }
-      const plain = line.replace(/<[^>]+>/g, '');
-      for (let i = 0; i < plain.length; i += MAX - 100) {
-        chunks.push(plain.slice(i, i + MAX - 100));
-      }
-      continue;
-    }
-    if ((cur + '\n' + line).length > MAX) {
-      chunks.push(cur);
-      cur = line;
-    } else {
-      cur = cur ? cur + '\n' + line : line;
-    }
-  }
-  if (cur) chunks.push(cur);
-
-  for (let i = 0; i < chunks.length; i++) {
-    const header = chunks.length > 1 ? `<i>(${i + 1}/${chunks.length})</i>\n` : '';
-    try {
-      const resp = await fetch(`https://api.telegram.org/bot${c.token}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: c.chat,
-          text: header + chunks[i],
-          parse_mode: 'HTML',
-          disable_web_page_preview: true
-        })
-      });
-      if (!resp.ok) return false;
-    } catch { return false; }
-    if (i < chunks.length - 1) await new Promise(r => setTimeout(r, 500));
-  }
-  return true;
-}
-
-/* ---- Report helpers: labels, serialize, drafts ---- */
 
 function fieldLabel(field) {
   if (field.type === 'checkbox' || field.type === 'radio') {
@@ -1559,6 +1386,13 @@ function fieldLabel(field) {
   }
   const wrap = field.closest('div');
   return wrap?.querySelector(':scope > label')?.textContent.trim() || field.name;
+}
+
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 function serializeForm(form) {
@@ -1614,14 +1448,6 @@ function serializeForm(form) {
   return sections.join('\n\n');
 }
 
-function updatePipeSummary(details) {
-  const fill = details.querySelector('.pipe-summary-fill');
-  if (!fill) return;
-  const inputs = details.querySelectorAll('input');
-  const filled = Array.from(inputs).filter(i => i.value).length;
-  fill.textContent = filled ? `(${filled}/${inputs.length} filled)` : '(empty)';
-}
-
 /* ---- Draft persistence ---- */
 
 function saveDraft(type) {
@@ -1634,4 +1460,279 @@ function saveDraft(type) {
       if (el.type === 'radio') data[el.name] = el.value;
       else (data[el.name] = data[el.name] || []).push(el.value);
     } else if (el.value) {
-      data
+      data[el.name] = el.value;
+    }
+  }
+  try { localStorage.setItem('geocamDraft_' + type, JSON.stringify(data)); } catch {}
+}
+
+function restoreDraft(type) {
+  const form = document.querySelector(`.report-form[data-report="${type}"]`);
+  if (!form) return;
+  form.reset();
+  form.querySelectorAll('label.chip-on').forEach(l => l.classList.remove('chip-on'));
+
+  let data;
+  try { data = JSON.parse(localStorage.getItem('geocamDraft_' + type) || '{}'); } catch { return; }
+
+  for (const [name, val] of Object.entries(data)) {
+    if (Array.isArray(val)) {
+      for (const v of val) {
+        const cb = form.querySelector(`input[name="${name}"][value="${v}"]`);
+        if (cb) { cb.checked = true; cb.closest('label')?.classList.add('chip-on'); }
+      }
+    } else {
+      for (const el of form.querySelectorAll(`[name="${name}"]`)) {
+        if (el.type === 'radio') {
+          if (el.value === val) { el.checked = true; el.closest('label')?.classList.add('chip-on'); }
+        } else if (el.type === 'checkbox') {
+          if (el.value === val) el.checked = true;
+        } else {
+          el.value = val;
+        }
+      }
+    }
+  }
+  form.querySelectorAll('.pipe-card').forEach(updatePipeSummary);
+}
+
+function clearDraft(type) {
+  try { localStorage.removeItem('geocamDraft_' + type); } catch {}
+}
+
+function hasUnsavedDrafts() {
+  try {
+    return ['manhole', 'chamber'].some(t => {
+      const d = localStorage.getItem('geocamDraft_' + t);
+      if (!d) return false;
+      const obj = JSON.parse(d);
+      return obj && Object.keys(obj).length > 0;
+    });
+  } catch { return false; }
+}
+
+/* ---- Telegram text sender (HTML formatted, handles >4096-char messages) ---- */
+
+async function sendTelegramText(html) {
+  const c = cfg();
+  if (!c.token || !c.chat) { toast('Set up upload settings first'); return false; }
+
+  const MAX = 3800;
+  const chunks = [];
+  let cur = '';
+
+  for (const line of html.split('\n')) {
+    // Overly long single line (e.g. a giant remarks field): strip tags and split safely
+    if (line.length > MAX - 100) {
+      if (cur) { chunks.push(cur); cur = ''; }
+      const plain = line.replace(/<[^>]+>/g, '');
+      for (let i = 0; i < plain.length; i += MAX - 100) {
+        chunks.push(plain.slice(i, i + MAX - 100));
+      }
+      continue;
+    }
+    if ((cur + '\n' + line).length > MAX) {
+      chunks.push(cur);
+      cur = line;
+    } else {
+      cur = cur ? cur + '\n' + line : line;
+    }
+  }
+  if (cur) chunks.push(cur);
+
+  for (let i = 0; i < chunks.length; i++) {
+    const header = chunks.length > 1 ? `<i>(${i + 1}/${chunks.length})</i>\n` : '';
+    try {
+      const resp = await fetch(`https://api.telegram.org/bot${c.token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: c.chat,
+          text: header + chunks[i],
+          parse_mode: 'HTML',
+          disable_web_page_preview: true
+        })
+      });
+      if (!resp.ok) return false;
+    } catch { return false; }
+    if (i < chunks.length - 1) await new Promise(r => setTimeout(r, 500));
+  }
+  return true;
+}
+
+/* ---- Open / close ---- */
+
+let currentReport = null;
+let draftTimer;
+
+function openReport(type) {
+  currentReport = type;
+  $('reportTitle').textContent = type === 'manhole' ? 'Manhole Report' : 'Chamber Report';
+  document.querySelectorAll('.report-form').forEach(f => {
+    f.hidden = f.dataset.report !== type;
+  });
+  $('reportOverlay').hidden = false;
+  document.body.style.overflow = 'hidden';
+  restoreDraft(type);
+  $('reportBody').scrollTop = 0;
+  history.pushState({ report: type }, '');
+}
+
+function hideOverlay() {
+  $('reportOverlay').hidden = true;
+  document.body.style.overflow = '';
+  currentReport = null;
+}
+
+document.querySelectorAll('.report-btn').forEach(btn => {
+  btn.onclick = () => openReport(btn.dataset.report);
+});
+
+$('reportClose').onclick = () => {
+  if (!currentReport) return;
+  saveDraft(currentReport);
+  if (history.state && history.state.report) history.back();
+  else hideOverlay();
+};
+
+window.addEventListener('popstate', () => {
+  if (!$('reportOverlay').hidden) hideOverlay();
+});
+
+/* ---- Chip toggling, draft autosave, pipe summaries ---- */
+
+document.addEventListener('change', e => {
+  if (e.target.matches('.rf-chips input')) {
+    e.target.closest('label').classList.toggle('chip-on', e.target.checked);
+  }
+});
+
+document.addEventListener('input', e => {
+  if (!currentReport) return;
+  const det = e.target.closest('.pipe-card');
+  if (det) updatePipeSummary(det);
+  clearTimeout(draftTimer);
+  draftTimer = setTimeout(() => saveDraft(currentReport), 400);
+});
+
+/* ---- Send ---- */
+
+$('reportSend').onclick = async () => {
+  if (!currentReport) return;
+  const form = document.querySelector(`.report-form[data-report="${currentReport}"]`);
+  const body = serializeForm(form);
+  if (!body) { toast('Fill in some fields first'); return; }
+
+  const title = currentReport === 'manhole' ? 'MANHOLE REPORT' : 'CHAMBER REPORT';
+  const loc   = getLocation();
+  const who   = cfg().name ? cfg().name + ' · ' : '';
+  const stamp = new Date().toLocaleString();
+  const text  = `<b>${title}</b>\n` +
+    (loc ? `<b>📍 ${escapeHTML(loc)}</b>\n` : '') +
+    `<i>${escapeHTML(who + stamp)}</i>\n\n${body}`;
+
+  const btn = $('reportSend');
+  btn.disabled = true; btn.textContent = 'Sending…';
+
+  try {
+    if (await sendTelegramText(text)) {
+      toast('Report sent ✓');
+      setReportCount(getReportCount() + 1);
+      updateReportCount();
+      form.reset();
+      form.querySelectorAll('label.chip-on').forEach(l => l.classList.remove('chip-on'));
+      form.querySelectorAll('.pipe-card').forEach(updatePipeSummary);
+      clearDraft(currentReport);
+      if (history.state && history.state.report) history.back();
+      else hideOverlay();
+    } else {
+      toast('Send failed – check settings or signal');
+    }
+  } catch {
+    toast('Send failed – check signal');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Send report';
+  }
+};
+
+/* ---- Clear ---- */
+
+$('reportClear').onclick = () => {
+  if (!currentReport) return;
+  if (!confirm('Clear this report? Any typed information will be lost.')) return;
+  const form = document.querySelector(`.report-form[data-report="${currentReport}"]`);
+  form.reset();
+  form.querySelectorAll('label.chip-on').forEach(l => l.classList.remove('chip-on'));
+  form.querySelectorAll('.pipe-card').forEach(updatePipeSummary);
+  clearDraft(currentReport);
+  toast('Report cleared');
+};
+
+/* ---- Start New Location ---- */
+
+async function startNewLocation() {
+  const unsentPhotos = photos.filter(r => r.up === false).length;
+  const drafts = hasUnsavedDrafts();
+
+  const warnings = [];
+  if (unsentPhotos) warnings.push(`${unsentPhotos} unsent photo${unsentPhotos > 1 ? 's' : ''}`);
+  if (drafts) warnings.push('unsent report draft(s)');
+
+  let msg = 'Start a new location?';
+  if (warnings.length) {
+    msg += '\n\n⚠ ' + warnings.join(' and ') + ' will be permanently wiped.';
+  }
+  msg += '\n\nAll photos and report drafts on this device will be cleared. Photos and reports already sent to Telegram are safe.\n\nContinue?';
+
+  if (!confirm(msg)) return;
+
+  const loc = prompt('Site Location / Road Name for this job:', getLocation());
+  if (loc === null) return;               // user cancelled the prompt
+  if (!loc.trim()) { toast('Location name required'); return; }
+
+  await tx('readwrite', s => s.clear()); // wipe all photos
+  clearDraft('manhole');
+  clearDraft('chamber');
+  try { localStorage.removeItem('geocamSeq'); } catch {}
+  setReportCount(0);
+  setLocation(loc.trim());
+
+  updateLocationDisplay();
+  updateReportCount();
+  render();
+  toast('New location: ' + loc.trim());
+}
+
+$('newLocBtn').onclick = startNewLocation;
+
+/* ---------- Start application ---------- */
+
+(async () => {
+  try {
+    db = await openDB();
+  } catch (e) {
+    toast('Photos can’t be stored in this browser', true);
+  }
+
+  if (navigator.storage && navigator.storage.persist) {
+    navigator.storage.persist();
+  }
+
+  if (db) render();
+
+  loadCfgForm();          // fill in the upload settings form
+  uploadPending();        // send anything left over from last time
+  updateLocationDisplay();
+  updateReportCount();
+
+  startGPS();
+
+  if (LIVE) {
+    showLive(true);
+    startCam();
+  }
+})();
+</script>
+</body>
+</html>
