@@ -22,27 +22,19 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 
 /* GPS card */
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
-.card-layout{display:grid;grid-template-columns:56% 44%;align-items:center}
-.gps-info{min-width:0;padding-right:12px}
+.card-layout{display:block}
+.gps-info{min-width:0}
 .status{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--mut)}
 .dot{width:10px;height:10px;border-radius:50%;background:var(--warn);flex:none}
 [data-state=ok] .dot{background:var(--ok)}
 [data-state=bad] .dot{background:var(--bad)}
-.en{display:grid;grid-template-columns:max-content max-content;column-gap:16px;margin:7px 0 1px}
-.en small{display:block;font-size:11px;color:var(--mut)}
-.en b{font:600 14px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.35px}
-.road{display:flex;flex-direction:column;gap:2px;margin-top:6px}
-.road small{font-size:10px;color:var(--mut);letter-spacing:.25px}
-.road b{font-size:15px;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
-.weather-panel{min-width:0;border-left:1px solid var(--line);padding-left:10px}
-.weather-title{font-size:10px;font-weight:700;letter-spacing:.35px;color:var(--mut);margin:0 0 6px}
-.weather-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 5px}
-.weather-row{display:grid;grid-template-columns:20px minmax(0,1fr);align-items:center;gap:4px;min-height:25px}
-.weather-icon{font-size:19px;line-height:1;text-align:center}
-.weather-time{font-size:11px;color:var(--ink);font-weight:600;white-space:nowrap}
-.weather-rain{display:block;font-size:9px;color:var(--mut);line-height:1.2}
-.weather-temp{display:none}
-.weather-message{font-size:10px;color:var(--mut);line-height:1.3}
+.road-row{display:flex;align-items:center;gap:14px;margin-top:7px}
+.road{display:flex;flex:1;min-width:0;flex-direction:column;gap:2px}
+.road small,.easting small,.northing small{display:block;font-size:10px;color:var(--mut);letter-spacing:.25px}
+.road b{font-size:15px;font-weight:700;line-height:1.2;overflow-wrap:anywhere}
+.easting{flex:none;min-width:112px}
+.easting b,.northing b{font:600 13px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.35px}
+.northing{margin-top:5px}
 .map-credit{margin:18px 0 0;text-align:center;font-size:10px;color:var(--mut)}
 
 /* Upload status + settings. 16px inputs stop iPhone zooming in when typing */
@@ -101,7 +93,6 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
   header h1{max-width:none}
   main{padding:8px 10px calc(20px + env(safe-area-inset-bottom))}
   .card{padding:8px;border-radius:10px}
-  .card-layout{grid-template-columns:56% 44%}
   .gps-info{padding-right:9px}
   .status{font-size:12px;gap:5px}
   .dot{width:7px;height:7px}
@@ -111,20 +102,22 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
   .road{margin-top:5px}
   .road small{font-size:9px}
   .road b{font-size:14px}
-  .weather-panel{padding-left:8px}
-  .weather-title{font-size:9px;margin-bottom:5px}
-  .weather-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 3px}
-  .weather-row{grid-template-columns:17px minmax(0,1fr);gap:3px;min-height:23px}
-  .weather-icon{font-size:17px}
-  .weather-time{font-size:10px}
-  .weather-rain{font-size:8px}
-  .weather-message{font-size:10px}
-  .live{margin-top:8px}
-  .cam{aspect-ratio:auto;height:55vh;max-height:none;min-height:300px;border-radius:10px}
-  .shutter{width:62px;height:62px;border-width:4px;margin:7px auto 2px}
-  .live .hint{font-size:11px}
   .take{margin:9px 0 4px;padding:14px;font-size:18px}
+  .live{margin-top:8px}
+  .cam{height:clamp(150px,calc(100svh - 300px),420px);min-height:0;max-height:none;border-radius:10px}
+  .shutter{width:54px;height:54px;border-width:4px;margin:6px auto 1px}
+  .live .hint{font-size:11px;margin:0}
   .bar{margin:18px 0 10px}
+
+@media (max-width:600px) and (max-height:760px){
+  header{padding-top:calc(9px + env(safe-area-inset-top));padding-bottom:9px}
+  header h1,header h1 strong{font-size:24px}
+  main{padding-top:6px}
+  .card{padding:7px}
+  .setup{margin-top:6px}
+  .up{margin:5px 0 0;font-size:11px}
+  .cam{height:clamp(120px,calc(100svh - 270px),340px)}
+  .shutter{width:48px;height:48px;margin:4px auto 0}
 }
 </style>
 </head>
@@ -145,32 +138,33 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
           <span class="dot"></span>
           <span id="gpsStatus">Finding your location…</span>
         </div>
-
-        <div class="road">
-          <small>APPROXIMATE ROAD LOCATION</small>
-          <b id="roadName">Locating road…</b>
-        </div>
-
-        <div class="en">
-          <div>
-            <small>Easting</small>
+        <div class="road-row">
+          <div class="road">
+            <small>APPROXIMATE ROAD LOCATION</small>
+            <b id="roadName">Locating road…</b>
+          </div>
+          <div class="easting">
+            <small>EASTING</small>
             <b id="gpsE">–</b>
           </div>
-          <div>
-            <small>Northing</small>
-            <b id="gpsN">–</b>
-          </div>
         </div>
-      </div>
-
-      <div class="weather-panel">
-        <div class="weather-title">NEXT 4 HOURS</div>
-        <div class="weather-list" id="weatherList">
-          <div class="weather-message">Waiting for GPS…</div>
+        <div class="northing">
+          <small>NORTHING</small>
+          <b id="gpsN">–</b>
         </div>
       </div>
     </div>
   </section>
+
+  <!-- Android live camera -->
+  <section class="live" id="live" hidden>
+    <div class="cam">
+      <video id="video" autoplay playsinline muted></video>
+    </div>
+    <button class="shutter" id="shutter" aria-label="Take photo"></button>
+    <p class="hint">Tap the round button to take a photo.</p>
+  </section>
+
 
   <!-- Upload status + settings (Telegram) -->
   <div class="up" id="upStatus"></div>
@@ -182,15 +176,6 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
     <label>Chat ID <input id="cfgChat" autocomplete="off" autocapitalize="off"></label>
     <button class="btn pri" id="cfgSave">Save</button>
   </details>
-
-  <!-- Android live camera -->
-  <section class="live" id="live" hidden>
-    <div class="cam">
-      <video id="video" autoplay playsinline muted></video>
-    </div>
-    <button class="shutter" id="shutter" aria-label="Take photo"></button>
-    <p class="hint">Tap the round button to take a photo.</p>
-  </section>
 
   <!-- Shown only if Android live view fails -->
   <button class="btn pri" id="retryCam" hidden style="width:100%;margin-top:16px;padding:14px">Retry live camera</button>
@@ -219,7 +204,7 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
   <div class="empty" id="empty">No photos yet. Tap <b>Take photo</b> to get started.</div>
   <div class="grid" id="grid"></div>
 
-  <p class="map-credit">Map data © OpenStreetMap contributors · Weather data © Open-Meteo</p>
+  <p class="map-credit">Map data © OpenStreetMap contributors</p>
 
 </main>
 
@@ -416,97 +401,6 @@ async function updateRoadName(lat, lon) {
   }
 }
 
-/* ---------- Four-hour weather forecast ---------- */
-
-let lastWeatherRequest = 0;
-let lastWeatherPosition = null;
-let weatherRequestActive = false;
-
-function weatherSymbol(code) {
-  if (code === 0) return ['☀️', 'Clear'];
-  if (code === 1 || code === 2) return ['🌤️', 'Partly cloudy'];
-  if (code === 3) return ['☁️', 'Cloudy'];
-  if (code === 45 || code === 48) return ['🌫️', 'Fog'];
-  if (code >= 51 && code <= 57) return ['🌦️', 'Drizzle'];
-  if (code >= 61 && code <= 67) return ['🌧️', 'Rain'];
-  if (code >= 71 && code <= 77) return ['🌨️', 'Snow'];
-  if (code >= 80 && code <= 82) return ['🌧️', 'Showers'];
-  if (code === 85 || code === 86) return ['🌨️', 'Snow showers'];
-  if (code >= 95) return ['⛈️', 'Thunderstorm'];
-  return ['🌥️', 'Mixed'];
-}
-
-async function updateWeather(lat, lon) {
-  const now = Date.now();
-
-  if (weatherRequestActive) return;
-
-  if (lastWeatherPosition) {
-    const latMetres = (lat - lastWeatherPosition.lat) * 111320;
-    const lonMetres = (lon - lastWeatherPosition.lon) * 111320 * Math.cos(lat * Math.PI / 180);
-    const distance = Math.hypot(latMetres, lonMetres);
-
-    if (distance < 5000 && now - lastWeatherRequest < 30 * 60 * 1000) return;
-  }
-
-  lastWeatherRequest = now;
-  lastWeatherPosition = { lat, lon };
-  weatherRequestActive = true;
-  $('weatherList').innerHTML = '<div class="weather-message">Updating forecast…</div>';
-
-  try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&hourly=precipitation_probability,weather_code&forecast_days=2&timezone=auto`;
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`Weather request returned ${response.status}`);
-    }
-
-    const data = await response.json();
-    const hourly = data.hourly;
-
-    if (!hourly || !hourly.time || !hourly.weather_code) {
-      throw new Error('Forecast data was incomplete');
-    }
-
-    const currentTime = Date.now();
-
-    let startIndex = hourly.time.findIndex(t => new Date(t).getTime() >= currentTime);
-    if (startIndex < 0) startIndex = 0;
-
-    const rows = [];
-
-    for (let i = startIndex; i < Math.min(startIndex + 4, hourly.time.length); i++) {
-      const time = new Date(hourly.time[i]);
-      const label = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const rain = hourly.precipitation_probability?.[i];
-      const code = hourly.weather_code?.[i] ?? 0;
-      const [icon, description] = weatherSymbol(code);
-
-      rows.push(`
-        <div class="weather-row" title="${description}">
-          <span class="weather-icon">${icon}</span>
-          <span>
-            <span class="weather-time">${label}</span>
-            <span class="weather-rain">${rain == null ? '' : `${rain}% rain`}</span>
-          </span>
-        </div>
-      `);
-    }
-
-    $('weatherList').innerHTML = rows.length
-      ? rows.join('')
-      : '<div class="weather-message">Forecast unavailable</div>';
-
-  } catch (error) {
-    $('weatherList').innerHTML = '<div class="weather-message">Forecast unavailable</div>';
-    lastWeatherRequest = Date.now() - 20 * 60 * 1000;
-
-  } finally {
-    weatherRequestActive = false;
-  }
-}
-
 /* ---------- Start GPS tracking ---------- */
 
 function startGPS() {
@@ -518,7 +412,6 @@ function startGPS() {
     pos = p;
 
     updateRoadName(p.coords.latitude, p.coords.longitude);
-    updateWeather(p.coords.latitude, p.coords.longitude);
 
     const a = Math.round(p.coords.accuracy);
 
