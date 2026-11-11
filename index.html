@@ -22,7 +22,7 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 
 /* GPS card */
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
-.card-layout{display:grid;grid-template-columns:56% 44%;align-items:center}
+.card-layout{display:grid;grid-template-columns:52% 48%;align-items:center}
 .gps-info{min-width:0;padding-right:12px}
 .status{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--mut)}
 .dot{width:10px;height:10px;border-radius:50%;background:var(--warn);flex:none}
@@ -32,13 +32,13 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
 .road small{font-size:10px;color:var(--mut);letter-spacing:.25px}
 .road b{font-size:14px;font-weight:400;line-height:1.25;overflow-wrap:anywhere}
 .gps-coords{min-width:0;border-left:1px solid var(--line);padding-left:10px}
-.en{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:8px;margin:0}
-.en small{display:block;font-size:10px;color:var(--mut)}
-.en b{font:600 13px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.5px;white-space:nowrap}
+.en{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:3px;margin:0}
+.en small{display:block;font-size:11px;color:var(--mut)}
+.en b{font:600 14px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.7px;white-space:nowrap}
 .map-credit{margin:18px 0 0;text-align:center;font-size:10px;color:var(--mut)}
 
 /* Upload status + settings. 16px inputs stop iPhone zooming in when typing */
-.up{margin:10px 0 0;font-size:13px;font-weight:600;text-align:center;color:var(--mut)}
+.up{margin:6px 0 0;font-size:13px;font-weight:600;text-align:center;color:var(--mut);line-height:1.25}
 .up.ok{color:var(--ok)} .up.warn{color:var(--warn)} .up.bad{color:var(--bad)}
 .up .btn{padding:4px 10px;font-size:12px;margin-left:4px}
 .setup{margin-top:10px;font-size:14px}
@@ -93,7 +93,7 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
   header h1{max-width:none}
   main{padding:8px 10px calc(20px + env(safe-area-inset-bottom))}
   .card{padding:8px;border-radius:10px}
-  .card-layout{grid-template-columns:56% 44%}
+  .card-layout{grid-template-columns:52% 48%}
   .gps-info{padding-right:9px}
   .status{font-size:12px;gap:5px}
   .dot{width:7px;height:7px}
@@ -101,9 +101,9 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
   .road small{font-size:9px}
   .road b{font-size:13px;font-weight:400}
   .gps-coords{padding-left:8px}
-  .en{column-gap:6px;margin:0}
-  .en small{font-size:9px}
-  .en b{font-size:12px;letter-spacing:-.55px}
+  .en{column-gap:2px;margin:0}
+  .en small{font-size:10px}
+  .en b{font-size:13px;letter-spacing:-.7px}
   .live{margin-top:8px}
   .cam{aspect-ratio:auto;height:55vh;max-height:none;min-height:300px;border-radius:10px}
   .shutter{width:62px;height:62px;border-width:4px;margin:7px auto 2px}
