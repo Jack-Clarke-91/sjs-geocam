@@ -192,6 +192,9 @@ main{max-width:720px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-
     <p class="hint">Tap the round button to take a photo.</p>
   </section>
 
+  <!-- Shown only if Android live view fails -->
+  <button class="btn pri" id="retryCam" hidden style="width:100%;margin-top:16px;padding:14px">Retry live camera</button>
+
   <!-- iPhone camera fallback -->
   <button class="take" id="take">
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -230,7 +233,7 @@ let db, pos = null, tapPos = null, photos = [], urls = [], stream = null, imgCap
 
 // Device detection
 const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const LIVE = !IS_IOS && 'ImageCapture' in window;
+const LIVE = !IS_IOS && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
 
 const pad = n => String(n).padStart(2, '0');
 const toBlob = (c, q) => new Promise(r => c.toBlob(r, 'image/jpeg', q));
@@ -577,6 +580,8 @@ $('cam').onchange = async e => {
 
 /* ---------- Android live camera ---------- */
 
+let camStarting = false;   // stops two camera starts running at once
+
 function showLive(on) {
   $('live').hidden = !on;
   $('take').style.display = on ? 'none' : '';
@@ -594,62 +599,124 @@ function stopCam() {
   $('video').srcObject = null;
 }
 
-async function startCam() {
-  // Do not start the camera while the page is in the background.
-  if (document.hidden) return;
+// A stream counts as "rear" unless the browser says it is the front camera.
+function isRear(s) {
+  const t = s.getVideoTracks()[0];
+  const fm = t.getSettings().facingMode;
+  return fm ? fm === 'environment' : !/front|user|selfie/i.test(t.label);
+}
+
+// Open the REAR camera and never return a front one.
+// Order: strict rear only -> prefer rear -> pick the camera labelled back/rear.
+async function openRearCamera() {
+  const size = { width: { ideal: 3840 }, height: { ideal: 2160 } };
+  const attempts = [
+    { facingMode: { exact: 'environment' }, ...size },
+    { facingMode: { ideal: 'environment' }, ...size }
+  ];
+  let lastErr;
+
+  for (const video of attempts) {
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ video, audio: false });
+      if (isRear(s)) return s;
+      s.getTracks().forEach(t => t.stop());   // got the front camera by mistake: discard it
+    } catch (e) {
+      lastErr = e;
+      if (e.name === 'NotAllowedError') throw e;   // permission denied: retrying won't help
+    }
+  }
+
+  // Last resort: open any camera so labels become visible, then choose the back one by name
+  try {
+    const tmp = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    tmp.getTracks().forEach(t => t.stop());
+
+    const cams = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
+    const back = cams.find(d => /back|rear|environment/i.test(d.label));
+
+    if (back) {
+      const s = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: { exact: back.deviceId }, ...size },
+        audio: false
+      });
+      if (isRear(s)) return s;
+      s.getTracks().forEach(t => t.stop());   // still not the rear camera: never use it
+    }
+  } catch (e) {
+    lastErr = e;
+  }
+
+  throw lastErr || new Error('No rear camera found');
+}
+
+async function startCam(tries = 3) {
+  // Do not start while the page is in the background, or if a start is already running.
+  if (document.hidden || camStarting) return;
+  camStarting = true;
+
+  stopCam();   // release any old stream first
 
   try {
-    const newStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: 'environment' },
-        width: { ideal: 3840 },
-        height: { ideal: 2160 }
-      },
-      audio: false
-    });
+    const newStream = await openRearCamera();
 
-    // If the camera request finished after the page was hidden, stop it.
+    // If the request finished after the page was hidden, stop it.
     if (document.hidden) {
       newStream.getTracks().forEach(track => track.stop());
       return;
     }
 
     stream = newStream;
-
     $('video').srcObject = stream;
     await $('video').play();
 
     // Check again in case the page was hidden while the video was starting.
     if (document.hidden) {
       stopCam();
-      showLive(false);
       return;
     }
 
-    imgCap = new ImageCapture(stream.getVideoTracks()[0]);
+    const track = stream.getVideoTracks()[0];
+    imgCap = 'ImageCapture' in window ? new ImageCapture(track) : null;   // without it, a video frame is used instead
 
+    // If the camera is taken away (another app, screen lock), start it again.
+    track.onended = () => { if (!document.hidden) { stopCam(); startCam(); } };
+
+    $('retryCam').hidden = true;
     showLive(true);
 
   } catch (e) {
     stopCam();
     showLive(false);
-    toast('Live camera unavailable, so the camera app will be used instead.');
+
+    // Camera still busy (e.g. just back from another app): wait a moment, then try again.
+    if (tries > 1 && (e.name === 'NotReadableError' || e.name === 'AbortError')) {
+      setTimeout(() => startCam(tries - 1), 800);
+      return;
+    }
+
+    $('retryCam').hidden = false;
+    $('takeHint').textContent = e.name === 'NotAllowedError'
+      ? 'Camera is blocked. Allow camera access in your browser settings, then tap Retry.'
+      : 'Live view failed. Tap Retry. The camera app may open the front camera, so switch to the rear one.';
+
+  } finally {
+    camStarting = false;
   }
 }
 
-// Stop the camera whenever GeoCam goes into the background.
+$('retryCam').onclick = () => startCam();
+
+// Stop the camera when GeoCam goes into the background, and restart it when you come back.
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden && LIVE) {
-    stopCam();
-    showLive(false);
-  } else if (!document.hidden && LIVE) {
-    showLive(false);
-    toast('Camera stopped. Refresh GeoCam to restart live view.');
-  }
+  if (!LIVE) return;
+  if (document.hidden) stopCam();
+  else startCam();
 });
 
-// Also stop the camera when the page is being left.
+// Also stop the camera when the page is being left, and restart if the browser restores the page from cache.
 window.addEventListener('pagehide', stopCam);
+window.addEventListener('pageshow', e => { if (LIVE && e.persisted) startCam(); });
 
 /* ---------- Capture full-resolution photo ---------- */
 
